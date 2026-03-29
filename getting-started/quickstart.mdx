@@ -1,0 +1,107 @@
+---
+title: Quick Start
+description: Get up and running with Feynman in under five minutes — launch the REPL, run deep research, and explore slash commands.
+keywords: ['feynman', 'quickstart', 'repl', 'deepresearch', 'slash commands']
+---
+
+This guide assumes you have already [installed Feynman](/getting-started/installation) and completed [feynman setup](/getting-started/setup). If not, start there first.
+
+<Steps>
+  <Step title="Launch the REPL">
+    Start an interactive session by running Feynman with no arguments:
+
+    ```bash
+    feynman
+    ```
+
+    You are dropped into a conversational REPL where you can ask research questions, run workflows, and interact with agents in natural language. Type your question and press Enter.
+
+    <Tip>
+    Sessions are persisted automatically. The next time you run `feynman`, you resume where you left off. Use `--new-session` to start a clean session:
+
+    ```bash
+    feynman --new-session
+    ```
+    </Tip>
+  </Step>
+
+  <Step title="Try a one-shot prompt">
+    For a quick answer without entering the REPL, pass a prompt directly on the command line:
+
+    ```bash
+    feynman --prompt "Summarize the key findings of Attention Is All You Need"
+    ```
+
+    Feynman processes the prompt, prints the response, and exits. This is useful for scripting or piping output into other tools.
+  </Step>
+
+  <Step title="Run deep research">
+    Deep research is the flagship workflow. It dispatches multiple agents to search, read, cross-reference, and synthesize information from academic papers and the web.
+
+    From the REPL:
+
+    ```
+    feynman
+    > /deepresearch What are the current approaches to mechanistic interpretability in LLMs?
+    ```
+
+    Or run it directly from the command line without entering the REPL:
+
+    ```bash
+    feynman deepresearch "transformer architectures for protein folding"
+    ```
+
+    The agents produce a structured research report with citations, key findings, and open questions. The full report is saved to your `outputs/` directory.
+  </Step>
+
+  <Step title="Explore slash commands">
+    Type `/help` inside the REPL to see all available slash commands grouped by category. Each command maps to a workflow or utility:
+
+    ```
+    > /help
+    ```
+
+    Key workflows you can invoke:
+
+    | Command | What it does |
+    | --- | --- |
+    | `/deepresearch <topic>` | Multi-agent investigation with parallel researchers |
+    | `/lit <topic>` | Literature review from paper search and primary sources |
+    | `/review <artifact>` | Simulated peer review with severity and revision plan |
+    | `/audit <item>` | Paper vs. codebase mismatch audit |
+    | `/replicate <paper>` | Replicate experiments on local or cloud GPUs |
+    | `/compare <topic>` | Source comparison matrix |
+    | `/draft <topic>` | Paper-style draft from research findings |
+    | `/watch <topic>` | Recurring research watch |
+    | `/outputs` | Browse all research artifacts |
+  </Step>
+
+  <Step title="Find your outputs">
+    Feynman writes research artifacts to your working directory using a slug-based naming scheme. After a research run, check these directories:
+
+    | Directory | Contents |
+    | --- | --- |
+    | `outputs/` | Research reports, briefs, and comparison matrices |
+    | `papers/` | Paper-style drafts |
+    | `notes/` | Session logs and intermediate research notes |
+
+    Use `/outputs` in the REPL to browse all artifacts interactively.
+  </Step>
+</Steps>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="CLI commands reference" icon="terminal" href="/reference/cli-commands">
+    Complete reference for all Feynman CLI commands, flags, and subcommands.
+  </Card>
+  <Card title="Slash commands reference" icon="slash" href="/reference/slash-commands">
+    Full list of REPL slash commands and their arguments.
+  </Card>
+  <Card title="Setup" icon="gear" href="/getting-started/setup">
+    Change your model provider, configure API keys, or connect to alphaXiv.
+  </Card>
+  <Card title="Introduction" icon="book-open" href="/getting-started/introduction">
+    Learn about the four research subagents and the full workflow catalog.
+  </Card>
+</CardGroup>

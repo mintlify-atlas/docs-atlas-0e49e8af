@@ -1,0 +1,211 @@
+---
+title: "Compute & execution"
+description: "Run experiments in Docker containers, Modal serverless GPU, or persistent RunPod pods."
+---
+
+Feynman supports three compute environments for running research code and experiments: Docker for local isolated execution, Modal for serverless burst GPU workloads, and RunPod for persistent GPU pods with SSH access.
+
+## Docker
+
+Docker runs research code inside isolated containers while Feynman stays on the host. The container receives the project files, runs the commands, and results sync back to the mounted directory.
+
+**When to use Docker:**
+- Running untrusted code from a paper's repository
+- Experiments that install packages or modify system state
+- Any time you need safe, isolated local execution
+- Replication workflows in `/replicate` or `/autoresearch`
+
+### Running commands in a container
+
+For Python research code:
+
+```bash
+docker run --rm -v "$(pwd)":/workspace -w /workspace python:3.11 bash -c "
+  pip install -r requirements.txt &&
+  python train.py
+"
+```
+
+For projects with a Dockerfile:
+
+```bash
+docker build -t feynman-experiment .
+docker run --rm -v "$(pwd)/results":/workspace/results feynman-experiment
+```
+
+For GPU workloads (requires NVIDIA Container Toolkit):
+
+```bash
+docker run --rm --gpus all -v "$(pwd)":/workspace -w /workspace pytorch/pytorch:latest bash -c "
+  pip install -r requirements.txt &&
+  python train.py
+"
+```
+
+### Choosing a base image
+
+| Research type | Base image |
+|---|---|
+| Python ML/DL | `pytorch/pytorch:latest` or `tensorflow/tensorflow:latest-gpu` |
+| Python general | `python:3.11` |
+| Node.js | `node:20` |
+| R / statistics | `rocker/r-ver:4` |
+| Julia | `julia:1.10` |
+| Multi-language | `ubuntu:24.04` with manual installs |
+
+### Persistent containers
+
+For iterative experiments, create a named container rather than using `--rm`:
+
+```bash
+docker create --name my-experiment -v "$(pwd)":/workspace -w /workspace python:3.11 tail -f /dev/null
+docker start my-experiment
+docker exec my-experiment bash -c "pip install -r requirements.txt"
+docker exec my-experiment bash -c "python train.py"
+```
+
+This preserves installed packages across iterations. Clean up after:
+
+```bash
+docker stop my-experiment && docker rm my-experiment
+```
+
+<Note>
+  Containers are network-enabled by default. Add `--network none` for full isolation. The mounted workspace syncs results back to the host automatically.
+</Note>
+
+---
+
+## Modal
+
+Modal provides serverless GPU compute. You write a decorated Python script and run it — no pod lifecycle to manage. Modal is the right choice for stateless burst workloads like training runs, inference jobs, and benchmarks.
+
+**When to use Modal:**
+- Burst GPU jobs (training, inference, benchmarks)
+- Stateless work where no persistent state is needed between runs
+- Jobs where you want to avoid managing instance lifecycle
+
+### Setup
+
+```bash
+pip install modal
+modal setup
+```
+
+Set credentials as environment variables (or via `modal setup`):
+
+```bash
+export MODAL_TOKEN_ID=your-token-id
+export MODAL_TOKEN_SECRET=your-token-secret
+```
+
+### Commands
+
+| Command | Description |
+|---|---|
+| `modal run script.py` | Run a script on Modal (ephemeral) |
+| `modal run --detach script.py` | Run detached in the background |
+| `modal deploy script.py` | Deploy persistently |
+| `modal serve script.py` | Serve with hot-reload (dev) |
+| `modal shell --gpu a100` | Interactive shell with GPU |
+| `modal app list` | List deployed apps |
+
+### GPU types
+
+`T4`, `L4`, `A10G`, `L40S`, `A100`, `A100-80GB`, `H100`, `H200`, `B200`
+
+For multi-GPU jobs, use `"H100:4"` for 4× H100s.
+
+### Script pattern
+
+```python
+import modal
+
+app = modal.App("experiment")
+image = modal.Image.debian_slim(python_version="3.11").pip_install("torch==2.8.0")
+
+@app.function(gpu="A100", image=image, timeout=600)
+def train():
+    import torch
+    # training code here
+
+@app.local_entrypoint()
+def main():
+    train.remote()
+```
+
+Run it:
+
+```bash
+modal run script.py
+```
+
+---
+
+## RunPod
+
+RunPod provides persistent GPU pods with SSH access. It is suited for long-running experiments, large dataset processing, and multi-step work where you need to SSH in between iterations.
+
+**When to use RunPod:**
+- Long-running experiments that need persistent state
+- Large dataset processing
+- Multi-step work where SSH access between iterations is needed
+- Experiments that cannot fit into a stateless function model
+
+### Setup
+
+<Tabs>
+  <Tab title="macOS">
+    ```bash
+    brew install runpod/runpodctl/runpodctl
+    runpodctl config --apiKey=YOUR_KEY
+    ```
+  </Tab>
+  <Tab title="Environment variable">
+    ```bash
+    export RUNPOD_API_KEY=your-api-key
+    ```
+  </Tab>
+</Tabs>
+
+### Commands
+
+| Command | Description |
+|---|---|
+| `runpodctl create pod --gpuType "NVIDIA A100 80GB PCIe" --imageName "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04" --name experiment` | Create a pod |
+| `runpodctl get pod` | List all pods |
+| `runpodctl get pod <id>` | Get details and connection info for a specific pod |
+| `runpodctl stop pod <id>` | Stop (preserves volume) |
+| `runpodctl start pod <id>` | Resume a stopped pod |
+| `runpodctl remove pod <id>` | Terminate and delete |
+| `runpodctl gpu list` | List available GPU types and prices |
+| `runpodctl send <file>` | Transfer files to/from pods |
+| `runpodctl receive <code>` | Receive transferred files |
+
+### SSH access
+
+```bash
+ssh root@<IP> -p <PORT> -i ~/.ssh/id_ed25519
+```
+
+Get the IP and port from `runpodctl get pod <id>`. Pods must expose port `22/tcp`.
+
+### Available GPU types
+
+`NVIDIA GeForce RTX 4090`, `NVIDIA RTX A6000`, `NVIDIA A40`, `NVIDIA A100 80GB PCIe`, `NVIDIA H100 80GB HBM3`
+
+<Warning>
+  Always stop or remove RunPod pods after experiments. Running pods continue to incur charges even when idle.
+</Warning>
+
+---
+
+## Choosing between Modal and RunPod
+
+| | Modal | RunPod |
+|---|---|---|
+| **Best for** | Burst GPU, stateless jobs | Persistent, SSH, long-running |
+| **State** | Ephemeral (no persistent state) | Persistent volume |
+| **Access** | Python function calls | SSH |
+| **Lifecycle** | Managed automatically | You manage start/stop |
+| **Credentials** | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` | `RUNPOD_API_KEY` |

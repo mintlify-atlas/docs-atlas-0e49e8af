@@ -1,0 +1,123 @@
+---
+title: "Experiment Replication"
+description: "Plan or execute a replication of a paper's experiments, benchmarks, or specific claims across multiple execution environments."
+---
+
+The replication workflow helps you plan and execute reproductions of published experiments, benchmark results, or specific claims. It extracts implementation details, produces a structured replication plan, and can guide execution across multiple compute environments including local, Docker, Modal, and RunPod.
+
+<Warning>
+  The workflow will not install packages, run training, or execute experiments until you have confirmed the execution environment. You are always asked before any code runs.
+</Warning>
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman replicate "<paper or claim>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /replicate <paper or claim>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman replicate "arxiv:2401.12345"
+feynman replicate "the claim that sparse attention achieves 95% of dense attention quality at 60% compute"
+```
+
+```
+/replicate arxiv:2310.06825
+/replicate "Table 3 results from the LoRA paper"
+```
+
+You can point the workflow at a full paper for a comprehensive replication plan, or at a specific claim for a targeted reproduction.
+
+## Workflow stages
+
+<Steps>
+  <Step title="Extract">
+    The `researcher` subagent pulls all implementation details from the target paper and any linked code: model architecture, hyperparameters, training schedule, dataset preparation, evaluation protocol, and hardware requirements.
+
+    If `CHANGELOG.md` exists in your workspace, the most recent relevant entries are read before planning or resuming, enabling the workflow to pick up where it left off.
+  </Step>
+
+  <Step title="Plan">
+    A structured replication plan is produced, specifying:
+
+    - What code, datasets, metrics, and environment are needed
+    - What is verified vs. inferred vs. still missing
+    - Which checks or test oracles will be used to decide whether replication succeeded
+
+    The plan is explicit about underspecified details in the paper and suggests reasonable defaults based on common practices, flagging each assumption as a potential source of divergence.
+  </Step>
+
+  <Step title="Environment selection">
+    Before running anything, you are asked where to execute the experiment:
+
+    | Environment | Description |
+    |---|---|
+    | **Local** | Run in the current working directory |
+    | **Virtual environment** | Create an isolated `venv` or `conda` environment first |
+    | **Docker** | Run experiment code inside an isolated Docker container |
+    | **Modal** | Run on Modal's serverless GPU infrastructure. A Modal-decorated Python script is written and executed with `modal run <script.py>`. Requires `modal` CLI (`pip install modal && modal setup`). Best for burst GPU jobs that don't need persistent state. |
+    | **RunPod** | Provision a GPU pod on RunPod and SSH in for execution. Uses `runpodctl` to create pods, transfer files, and manage lifecycle. Requires `runpodctl` CLI and `RUNPOD_API_KEY`. Best for long-running experiments or when you need SSH access and persistent storage. |
+    | **Plan only** | Produce the replication plan without executing |
+
+    <Note>
+      If you choose "Plan only", the workflow produces a complete, actionable plan that you can hand off to a human researcher or execute yourself.
+    </Note>
+  </Step>
+
+  <Step title="Execute">
+    If you chose an execution environment, the replication steps are implemented and run there. Notes, scripts, raw outputs, and results are saved to disk in a reproducible layout under `experiments/`.
+
+    The outcome is not marked as replicated unless the planned checks actually passed.
+  </Step>
+
+  <Step title="Log">
+    For multi-step or resumable replication work, concise entries are appended to `CHANGELOG.md` after meaningful progress, failed attempts, and major verification outcomes. Each entry records the active objective, what changed, what was checked, and the next step.
+  </Step>
+
+  <Step title="Report">
+    The final report ends with a `Sources` section containing paper and repository URLs. It records what was run, what passed, what diverged, and any remaining open questions about the replication.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Replication plan | `outputs/.plans/<slug>.md` |
+| Experiment code and scripts | `experiments/` |
+| Run logs and raw outputs | `experiments/<slug>/` |
+| Progress log | `CHANGELOG.md` |
+
+## Compute environment notes
+
+### Modal (serverless GPU)
+
+Modal is best for burst workloads: training jobs, inference benchmarks, or evaluation sweeps that need a GPU but do not require persistent storage between runs. The workflow generates a complete Modal script with the appropriate decorators (`@app.function`, GPU selection, image specification) and runs it directly.
+
+```bash
+pip install modal && modal setup
+```
+
+### RunPod (persistent GPU pods)
+
+RunPod is best for long-running experiments or when you need a stable SSH session, persistent storage, and full control over the environment. The workflow uses `runpodctl` to provision the pod, transfer files, and manage the lifecycle.
+
+```bash
+# Requires RUNPOD_API_KEY in your environment
+export RUNPOD_API_KEY=<your-key>
+```
+
+## Related
+
+- [Paper Audit](/workflows/audit) — compare paper claims against a public codebase without running code
+- [Deep Research](/workflows/deep-research) — investigate a topic before deciding what to replicate

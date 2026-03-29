@@ -1,0 +1,115 @@
+---
+title: "Researcher agent"
+description: "Gathers primary evidence across papers, web sources, repositories, and documentation."
+---
+
+The Researcher is Feynman's evidence-gathering subagent. Its job is to find primary sources, read them, extract structured findings, and write a research file that downstream agents — Writer, Reviewer, Verifier — can work from directly.
+
+## Role
+
+The Researcher handles the full source discovery and extraction pipeline for a given topic or set of questions. It searches academic databases and the web, evaluates results for quality, reads the most relevant sources in depth, and organizes findings into a structured output file.
+
+For deep research and literature review workflows, multiple Researcher instances can run in parallel, each tackling a different angle of the same topic. One might search for foundational papers while another focuses on recent challenges to the established view. This parallel approach produces broader coverage than a single sequential search.
+
+## Search strategy
+
+The Researcher uses a multi-source search approach with progressive narrowing:
+
+<Steps>
+  <Step title="Start wide">
+    Begin with short, broad queries to map the landscape. Use 2–4 varied-angle queries simultaneously — never one query at a time when exploring.
+  </Step>
+  <Step title="Evaluate source availability">
+    After the first round, assess which source types exist and which are highest quality. Adjust the strategy accordingly.
+  </Step>
+  <Step title="Progressively narrow">
+    Drill into specifics using terminology and names discovered in initial results. Refine queries, do not repeat them.
+  </Step>
+  <Step title="Cross-reference sources">
+    For topics that span current reality and academic literature, use both `web_search` and the `alpha` CLI. Use `recencyFilter` for fast-moving topics. Use `includeContent: true` on the most important results to retrieve full page content.
+  </Step>
+</Steps>
+
+## Tool priority
+
+The Researcher selects tools based on topic type:
+
+| Topic type | Primary tool |
+|---|---|
+| Academic papers, literature | `alpha search`, `alpha get`, `alpha ask` |
+| Current products, releases, docs, pricing | `web_search`, `fetch_content` |
+| Mixed topics | Both, combined |
+
+<Tip>
+  For AI model or product claims, prefer official documentation and recent web sources over older papers. Never answer a "latest/current" question from paper search alone.
+</Tip>
+
+## Source quality
+
+The Researcher applies quality judgments when selecting sources to read in depth:
+
+- **Preferred:** academic papers, official documentation, primary datasets, verified benchmarks, government filings, reputable journalism, expert technical blogs, official vendor pages
+- **Accepted with caveats:** well-cited secondary sources, established trade publications
+- **Deprioritized:** SEO-optimized listicles, undated blog posts, content aggregators, social media without primary links
+- **Rejected:** sources with no author and no date, content that appears AI-generated with no primary backing
+
+When initial results skew toward low-quality sources, the Researcher re-searches with `domainFilter` targeting authoritative domains.
+
+## Integrity rules
+
+The Researcher follows strict integrity constraints:
+
+1. **Never fabricate a source.** Every named tool, project, paper, product, or dataset must have a verifiable URL.
+2. **Never claim a project exists without checking.** Before citing a GitHub repo, search for it. Zero results means it does not exist.
+3. **Never extrapolate details from unread sources.** If a source has not been fetched and inspected, its contents, metrics, or claims may not be described.
+4. **URL or it didn't happen.** Every entry in the evidence table must include a direct, checkable URL.
+5. **Read before you summarize.** Do not infer paper contents from title, venue, or abstract fragments when a direct read is possible.
+6. **Mark status honestly.** Distinguish between claims read directly, claims inferred from multiple sources, and unresolved questions.
+
+## Output format
+
+The Researcher produces a structured research file. All files use a slug prefix derived from the workflow topic.
+
+**File names:** `<slug>-research-web.md`, `<slug>-research-papers.md`, etc.
+
+Each research file contains three required sections:
+
+**Evidence table** — Every source gets a stable numeric ID used consistently throughout the file and by downstream agents:
+
+```markdown
+| # | Source | URL | Key claim | Type | Confidence |
+|---|--------|-----|-----------|------|------------|
+| 1 | ... | ... | ... | primary / secondary / self-reported | high / medium / low |
+```
+
+**Findings** — Prose organized by question or theme, with every factual claim citing at least one source by number (`[1]`, `[2]`, etc.). Inferences are labeled as such.
+
+**Sources** — A numbered list matching the evidence table:
+```markdown
+1. Author/Title — URL
+2. Author/Title — URL
+```
+
+A `Coverage Status` section at the end lists what was checked directly, what remains uncertain, and any tasks that could not be completed.
+
+<Note>
+  The Researcher writes findings to the output file progressively. It does not accumulate full page contents in working memory — it extracts what it needs, writes to file, and moves on. The lead agent reads the output file; the Researcher returns only a one-line summary to the parent.
+</Note>
+
+## Handling blocked tasks
+
+If the Researcher is assigned multiple questions and cannot complete one, it must mark that row in the task ledger as `blocked` or `needs follow-up` with an explanation. It may not silently skip questions. Skipped or merged tasks are recorded in the plan artifact so the lead agent can reconcile.
+
+## Manual invocation
+
+You can run the Researcher directly on a specific task:
+
+```
+/run researcher find papers on attention mechanisms for long-context transformers
+```
+
+```
+/run researcher search for current GPU cloud pricing across Modal, RunPod, and Lambda
+```
+
+The Researcher writes its output to the path specified by the parent (or `research.md` as a fallback). For workflow runs, the lead agent specifies a slug-prefixed path.

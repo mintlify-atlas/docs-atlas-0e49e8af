@@ -1,0 +1,153 @@
+---
+title: Setup
+description: Configure Feynman's model provider, API keys, and alphaXiv authentication using the guided setup wizard.
+keywords: ['feynman', 'setup', 'model provider', 'api key', 'alphaxiv', 'configuration']
+---
+
+The `feynman setup` wizard configures your model provider, API keys, alphaXiv authentication, and optional preview dependencies. It runs automatically on first launch when no model is configured, but you can re-run it at any time to change your configuration.
+
+## Running setup
+
+```bash
+feynman setup
+```
+
+<Note>
+`feynman setup` requires an interactive terminal (a TTY). If you run it in a non-interactive environment such as a CI pipeline or a Docker container, it will print guidance for the equivalent explicit commands instead.
+</Note>
+
+In non-interactive terminals, use the following commands directly:
+
+```bash
+feynman model login <provider>
+feynman model set <provider/model>
+feynman alpha login
+feynman doctor
+```
+
+## Setup flow
+
+<Steps>
+  <Step title="Select a model provider">
+    The wizard presents a list of supported providers. Use the arrow keys to select your preferred default model. Supported providers include:
+
+    - **Anthropic** — Claude models (claude-sonnet-4, claude-opus-4, etc.)
+    - **OpenAI** — GPT-4o, o3, and other OpenAI models
+    - **Google** — Gemini models
+    - **OpenRouter** — Access to a wide range of models through a single API key
+    - **xAI** — Grok models
+    - **Groq** — Fast inference for open models
+    - **Mistral** — Mistral and Codestral models
+    - **Cerebras** — High-speed inference
+    - **HuggingFace** — HuggingFace-hosted models
+    - **GitHub Copilot** — Models via the GitHub Copilot API
+    - **Azure OpenAI** — Azure-hosted OpenAI deployments
+
+    The selected model becomes the default for all sessions. You can override it per-session with `--model` or change it later.
+  </Step>
+
+  <Step title="Authenticate with your provider">
+    Depending on your chosen provider, setup prompts you for an API key or walks you through an OAuth login flow. For API key providers, paste your key when prompted. Keys are stored in `~/.feynman/auth.json` and are never sent anywhere except the provider's API endpoint.
+  </Step>
+
+  <Step title="Connect to alphaXiv">
+    alphaXiv provides paper search, Q&A, code reading, and annotation capabilities. If you are not already logged in, setup opens a browser window to complete the alphaXiv sign-in flow. Your session is stored in `~/.feynman/`.
+
+    You can authenticate separately at any time:
+
+    ```bash
+    feynman alpha login
+    ```
+
+    To check your alphaXiv auth status:
+
+    ```bash
+    feynman alpha status
+    ```
+  </Step>
+
+  <Step title="Install preview dependencies">
+    Setup checks for optional preview dependencies (Pandoc) that enable browser and PDF export of generated research artifacts. If Pandoc is not found, setup reports its status. You can run this check again with:
+
+    ```bash
+    feynman --setup-preview
+    ```
+  </Step>
+
+  <Step title="Verify the configuration">
+    After setup completes, it prints a summary showing the active model, alphaXiv status, preview status, and web search routing. Run `feynman doctor` at any time to re-run these checks:
+
+    ```bash
+    feynman doctor
+    ```
+  </Step>
+</Steps>
+
+## Setting a default model
+
+To change your default model without re-running the full setup wizard:
+
+```bash
+feynman model set <provider/model>
+```
+
+For example:
+
+```bash
+feynman model set anthropic/claude-sonnet-4-5
+```
+
+To list all models available with your current credentials:
+
+```bash
+feynman model list
+```
+
+## Configuration file
+
+Setup writes to `~/.feynman/settings.json`. A typical configuration looks like:
+
+```json
+{
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-sonnet-4-5",
+  "defaultThinkingLevel": "medium"
+}
+```
+
+`defaultProvider` and `defaultModel` are set together. Use `feynman model set <provider/model>` to update them — editing manually is also safe when Feynman is not running. See [Configuration](/reference/configuration) for all settings fields.
+
+## Environment variables
+
+Environment variables take precedence over `settings.json` and are useful for CI environments or scripted workflows:
+
+| Variable | Description |
+| --- | --- |
+| `FEYNMAN_MODEL` | Override the default model |
+| `FEYNMAN_THINKING` | Override the thinking level (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`) |
+| `FEYNMAN_HOME` | Override the config directory (default: `~/.feynman`) |
+| `ANTHROPIC_API_KEY` | Anthropic API key |
+| `OPENAI_API_KEY` | OpenAI API key |
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `OPENROUTER_API_KEY` | OpenRouter API key |
+| `XAI_API_KEY` | xAI API key |
+| `GROQ_API_KEY` | Groq API key |
+| `MISTRAL_API_KEY` | Mistral API key |
+| `CEREBRAS_API_KEY` | Cerebras API key |
+| `HF_TOKEN` | HuggingFace token |
+| `RUNPOD_API_KEY` | RunPod API key (for GPU experiments) |
+| `MODAL_TOKEN_ID` | Modal token ID (for serverless GPU compute) |
+| `MODAL_TOKEN_SECRET` | Modal token secret |
+
+<Tip>
+Copy `.env.example` from the repository to `.env` in your working directory as a starting point. Feynman loads it automatically via `dotenv`.
+</Tip>
+
+## Re-running setup
+
+Running `feynman setup` again overwrites previous settings. If you only need to change a specific value, use the targeted commands:
+
+- Change model: `feynman model set <provider/model>`
+- Re-authenticate a provider: `feynman model login <provider>`
+- alphaXiv login: `feynman alpha login`
+- Check everything: `feynman doctor`

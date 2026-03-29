@@ -1,0 +1,90 @@
+---
+title: "AlphaXiv"
+description: "Academic paper search, reading, Q&A, code inspection, and annotations via the alpha CLI."
+---
+
+AlphaXiv is Feynman's primary academic paper platform. It provides access to a large corpus of research papers along with search, full-text reading, targeted Q&A, linked code repository inspection, and persistent annotations. The Researcher agent uses the `alpha` CLI for all paper operations during research workflows.
+
+## Authentication
+
+AlphaXiv requires authentication. Set it up once during initial setup or at any time:
+
+```bash
+feynman alpha login
+```
+
+Check your authentication status:
+
+```bash
+feynman alpha status
+```
+
+Log out:
+
+```bash
+feynman alpha logout
+```
+
+Authentication tokens are stored in `~/.feynman/auth/` and persist across sessions. No additional configuration is needed beyond logging in.
+
+<Note>
+  If you choose not to authenticate with AlphaXiv, Feynman falls back to web search for finding papers. This works for well-known work but misses citation metadata, discussion threads, and full-text access. For serious research workflows, AlphaXiv authentication is strongly recommended.
+</Note>
+
+## Commands
+
+All paper operations use the `alpha` CLI via bash. The Feynman `alpha-research` skill teaches the agent to use these commands automatically.
+
+| Command | Description |
+|---|---|
+| `alpha search "<query>"` | Search papers. Uses semantic mode by default. |
+| `alpha search --mode keyword "<query>"` | Exact-term keyword search. |
+| `alpha search --mode agentic "<query>"` | Broader agentic retrieval. |
+| `alpha get <arxiv-id-or-url>` | Fetch paper content and any local annotation. |
+| `alpha get --full-text <arxiv-id>` | Get raw full text instead of an AI report. |
+| `alpha ask <arxiv-id> "<question>"` | Ask a targeted question about a paper's PDF. |
+| `alpha code <github-url> [path]` | Read files from a paper's linked GitHub repo. Use `/` for a repo overview. |
+| `alpha annotate <paper-id> "<note>"` | Save a persistent annotation on a paper. |
+| `alpha annotate --clear <paper-id>` | Remove an annotation. |
+| `alpha annotate --list` | List all saved annotations. |
+
+## Examples
+
+```bash
+# Search for papers on a topic
+alpha search "transformer scaling laws"
+alpha search --mode agentic "efficient attention mechanisms for long context"
+
+# Fetch a paper by arXiv ID
+alpha get 2106.09685
+
+# Ask a targeted question about a paper
+alpha ask 2106.09685 "What optimizer did they use?"
+
+# Inspect code from a paper's repository
+alpha code https://github.com/karpathy/nanoGPT src/model.py
+alpha code https://github.com/karpathy/nanoGPT /
+
+# Manage persistent annotations
+alpha annotate 2106.09685 "Key paper on LoRA - revisit for adapter comparison"
+alpha annotate --list
+alpha annotate --clear 2106.09685
+```
+
+## How the Researcher agent uses AlphaXiv
+
+The Researcher uses the `alpha` CLI as its primary tool for academic content. Its selection logic:
+
+| Topic type | Tool |
+|---|---|
+| Academic papers, literature review | `alpha search`, `alpha get`, `alpha ask` |
+| Current products, releases, pricing, docs | `web_search`, `fetch_content` |
+| Mixed topics | Both, combined |
+
+For papers provided by arXiv ID, the Researcher fetches them directly with `alpha get`. For open-ended topics, it runs 2–4 varied `alpha search` queries simultaneously to map the landscape before narrowing.
+
+When citing papers from alpha-backed tools, Feynman prefers direct arXiv or AlphaXiv links and includes the arXiv ID in the reference.
+
+<Tip>
+  Use `alpha search --mode agentic` when broad retrieval is needed and `--mode keyword` only for exact-term lookups. Semantic mode (the default) performs best for most research queries.
+</Tip>

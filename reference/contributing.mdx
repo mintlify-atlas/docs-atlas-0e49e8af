@@ -1,0 +1,172 @@
+---
+title: "Contributing"
+description: "How to contribute code, prompts, skills, docs, and workflow improvements to Feynman."
+keywords: ["contributing", "development", "pull request", "prompts", "skills", "reference"]
+---
+
+Feynman is a research-first CLI built on Pi and alphaXiv. Contributions are welcome across code, prompts, skills, docs, installers, and workflow behavior. This page covers what you need to know before opening a PR.
+
+- GitHub: [github.com/getcompanion-ai/feynman](https://github.com/getcompanion-ai/feynman)
+- Issues: [github.com/getcompanion-ai/feynman/issues](https://github.com/getcompanion-ai/feynman/issues)
+
+## What goes where
+
+| Path | Contents |
+| --- | --- |
+| `src/` | CLI entry point, Pi launch logic, model/search/setup commands, runtime utilities |
+| `prompts/` | Bundled research workflow templates (one `.md` file per workflow) |
+| `skills/` | Bundled Pi skills (reusable tool-level capabilities) |
+| `.feynman/agents/` | Bundled Pi subagent prompts: `researcher`, `reviewer`, `writer`, `verifier` |
+| `website/` | Documentation site source |
+| `scripts/` | Build and release scripts |
+| `outputs/`, `papers/`, `notes/` | Generated research artifacts — not source files |
+
+<Note>
+To change how bundled subagents behave, edit `.feynman/agents/*.md`. Do not duplicate subagent behavior in `AGENTS.md` — that file is the repo-level contract for workspace conventions, not per-agent instructions.
+</Note>
+
+## Before you open a PR
+
+<Steps>
+  <Step title="Start from latest main">
+    Always branch from an up-to-date `main`. Do not base PRs on stale or unrelated branches.
+  </Step>
+
+  <Step title="Use the correct Node version">
+    The repo requires Node.js `20.19.0` or newer. Use `.nvmrc` to stay aligned:
+
+    ```bash
+    nvm use || nvm install
+    ```
+
+    The `.nvmrc`, `package.json` engines, `website/package.json` engines, and the runtime version guard must all stay in sync. Do not bump one without checking the others.
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+
+  <Step title="Run the required checks">
+    All three must pass before asking for review:
+
+    ```bash
+    npm test
+    npm run typecheck
+    npm run build
+    ```
+  </Step>
+
+  <Step title="Validate the docs site if you changed it">
+    ```bash
+    cd website
+    npm install
+    npm run build
+    ```
+  </Step>
+
+  <Step title="Keep the PR focused">
+    Do not mix unrelated cleanup with the real change. Add or update tests when behavior changes. Update docs, prompts, or skills when the user-facing workflow changes.
+  </Step>
+</Steps>
+
+## Contribution rules
+
+- Bug fixes, docs fixes, installer fixes, and focused workflow improvements are good PRs.
+- Large feature changes should start with an issue or implementation discussion before code lands.
+- Avoid refactor-only PRs unless they unblock a real fix or are requested by a maintainer.
+- Do not silently change release behavior, installer behavior, or runtime defaults without documenting the reason in the PR.
+- Use American English in docs, comments, prompts, UI copy, and examples.
+
+## Prompt and skill changes
+
+New research workflows live in `prompts/*.md`. New reusable tool-level capabilities live in `skills/<name>/SKILL.md`.
+
+- Keep skill files concise. Put detailed operational rules in the prompt or in focused reference files only when needed.
+- If a new workflow should be invokable from the CLI, include the correct frontmatter metadata so the command works through the normal prompt discovery path:
+
+```markdown
+---
+description: Short description of what the workflow does.
+args: <arg>
+section: Research Workflows
+topLevelCli: true
+---
+```
+
+The `topLevelCli: true` field makes the workflow available as both a slash command in the REPL and a top-level CLI command (`feynman <name>`).
+
+## Agent and artifact conventions
+
+The `AGENTS.md` file is the repo-level contract for workspace conventions. It covers output locations, file naming, provenance requirements, and handoff rules between the lead agent and subagents.
+
+Key conventions from `AGENTS.md`:
+
+- Research outputs → `outputs/`
+- Paper-style drafts → `papers/`
+- Session logs → `notes/`
+- Long-running workflow plans → `outputs/.plans/<slug>.md`
+- The workspace lab notebook → `CHANGELOG.md` (updated for substantial multi-round work only)
+
+**File naming:** Every workflow that produces artifacts derives a short slug from the topic (lowercase, hyphens, no filler words, ≤5 words). All files in a single run use that slug as a prefix. Never use generic names like `research.md`, `draft.md`, or `summary.md`.
+
+**Provenance:** Every output from `/deepresearch` and `/lit` must include a `.provenance.md` sidecar recording source accounting and verification status.
+
+**Delegation:** The lead agent plans, delegates to subagents, synthesizes, and delivers. Prefer file-based handoffs over passing large intermediate results back into parent context.
+
+## Release and versioning discipline
+
+The curl installer and release docs point users at tagged releases, not arbitrary commits on `main`. When shipping user-visible fixes:
+
+- Do not leave `main` and the latest release advertising the same version string with different behavior.
+- When changing release-sensitive behavior, check the version story across:
+  - `.nvmrc`
+  - `package.json`
+  - `website/package.json`
+  - `scripts/check-node-version.mjs`
+  - Install docs in `README.md` and the website installation page
+
+## AI-assisted contributions
+
+AI-assisted PRs are accepted. The contributor is still responsible for the diff.
+
+- Understand the code you are submitting.
+- Run the local checks yourself instead of assuming generated code is correct.
+- Include enough context in the PR description for a reviewer to understand the change.
+- If an agent updated prompts or skills, verify the instructions match the actual repo behavior.
+
+## Review expectations
+
+- Explain what changed and why.
+- Call out tradeoffs, follow-up work, and anything intentionally not handled.
+- Include screenshots for UI changes.
+- Resolve review comments you addressed before requesting another review pass.
+
+## Good first areas
+
+<AccordionGroup>
+  <Accordion title="Installation and upgrade reliability">
+    The install and upgrade paths cover a lot of Node version and environment surface area. Improving error messages, handling edge cases in the setup wizard, and making `feynman doctor` more actionable are consistently high-value contributions.
+  </Accordion>
+
+  <Accordion title="Research workflow quality">
+    The prompts in `prompts/` drive every research workflow. Improvements to planning quality, subagent delegation, verification discipline, citation accuracy, and output structure are welcome. Make sure any prompt change still produces valid outputs end-to-end.
+  </Accordion>
+
+  <Accordion title="Model and provider ergonomics">
+    `feynman model login`, `feynman model list`, and `feynman setup` are the primary UX for auth. Improving provider error messages, OAuth flow reliability, and model listing clarity helps users get unblocked faster.
+  </Accordion>
+
+  <Accordion title="Docs clarity">
+    The docs site source lives in `website/`. Improving accuracy, fixing outdated examples, adding usage context to thin reference pages, and clarifying setup steps are all valuable. Run `cd website && npm run build` to validate changes.
+  </Accordion>
+
+  <Accordion title="Preview and export stability">
+    The `/preview` command and pandoc dependency path have rough edges on some platforms. Improving the `feynman --setup-preview` flow, pandoc version handling, and Markdown/LaTeX rendering consistency are practical contributions.
+  </Accordion>
+
+  <Accordion title="Packaging and release hygiene">
+    Release scripts, installer reliability, version string consistency, and npm packaging are all areas where incremental improvements compound over time.
+  </Accordion>
+</AccordionGroup>

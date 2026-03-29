@@ -1,0 +1,119 @@
+---
+title: "Peer Review"
+description: "Simulate an AI research peer review with likely objections, severity grading, and a concrete revision plan."
+---
+
+The peer review workflow simulates a thorough academic peer review of a paper, draft, or research artifact. It produces severity-graded feedback covering methodology, claims, writing quality, and reproducibility — using the same `reviewer` subagent that verifies outputs in other Feynman workflows.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman review "<artifact>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /review <artifact>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman review "arxiv:2401.12345"
+feynman review my-draft.md
+```
+
+```
+/review arxiv:2310.06825
+/review ~/papers/my-draft.pdf
+```
+
+You can pass an arXiv ID, a URL, or a local file path.
+
+## Workflow stages
+
+<Steps>
+  <Step title="Plan">
+    Before starting, the lead agent outlines what will be reviewed, the review criteria (novelty, empirical rigor, baselines, reproducibility, and so on), and any verification-specific checks needed for claims, figures, and reported metrics. The plan is presented to you for confirmation before proceeding.
+  </Step>
+
+  <Step title="Gather evidence">
+    For papers or artifacts with associated code and cited work, the `researcher` subagent gathers evidence: it inspects the paper, the codebase, cited sources, and any linked experimental artifacts, saving findings to `<slug>-research.md`.
+
+    <Note>
+      For small or simple artifacts where evidence gathering is overkill, the `reviewer` subagent is run directly without a prior research pass.
+    </Note>
+  </Step>
+
+  <Step title="Review">
+    The `reviewer` subagent reads the document end-to-end against standard academic criteria:
+
+    - Are the claims supported by the methodology?
+    - Does the experimental design have potential confounds?
+    - Are baselines appropriate and fairly compared?
+    - Is the paper reproducible from the description given?
+    - Are reported metrics consistent with the experimental setup?
+
+    The reviewer uses `<slug>-research.md` as source material for inline annotations.
+  </Step>
+
+  <Step title="Severity grading">
+    Each piece of feedback is assigned one of three severity levels:
+
+    | Severity | Meaning |
+    |---|---|
+    | **FATAL** | Fundamental issues that undermine the paper's core validity |
+    | **MAJOR** | Significant problems that should be addressed before publication |
+    | **MINOR** | Suggestions for improvement that do not block acceptance |
+
+    If the first review finds FATAL issues and they are fixed, one additional verification-style review pass is run before delivery.
+  </Step>
+
+  <Step title="Deliver">
+    Exactly one review artifact is saved to `outputs/<slug>-review.md`. The report ends with a `Sources` section containing direct URLs for every inspected external source.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Research evidence (when gathered) | `<slug>-research.md` |
+| Peer review report | `outputs/<slug>-review.md` |
+
+## Review report structure
+
+- **Summary assessment** — overall evaluation and recommendation
+- **Strengths** — what the paper does well
+- **FATAL issues** — fundamental problems that must be addressed
+- **MAJOR issues** — significant concerns with suggested fixes
+- **MINOR issues** — smaller improvements and suggestions
+- **Inline annotations** — specific comments tied to sections or claims in the document
+
+## Subagents used
+
+| Subagent | Role |
+|---|---|
+| `researcher` | Gathers evidence from the paper, code, and cited work |
+| `reviewer` | Produces the peer review with severity-graded annotations |
+
+## Customization
+
+You can focus the review by being specific in your prompt:
+
+```
+/review arxiv:2401.12345 focus on the statistical methodology in Section 4
+/review my-draft.md check the claims in the experiments section against the reported numbers
+```
+
+The reviewer adapts its analysis to your priorities while still performing a baseline check of the full document.
+
+## Related
+
+- [Paper Audit](/workflows/audit) — compare paper claims against a public codebase
+- [Experiment Replication](/workflows/replication) — execute replication steps to verify experimental claims
+- [Deep Research](/workflows/deep-research) — investigate the broader context before reviewing

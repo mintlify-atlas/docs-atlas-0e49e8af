@@ -1,0 +1,80 @@
+---
+title: "Verifier agent"
+description: "Anchors claims to sources, verifies every URL, and builds the final numbered Sources section."
+---
+
+The Verifier is Feynman's citation and source-checking subagent. It receives a draft from the Writer and the research files it was built from, then post-processes the draft to add inline citations, verify that every source URL is live and actually supports the attached claim, and build the final numbered Sources section. It is the last agent to run before delivery.
+
+## Role
+
+The Verifier does not rewrite prose. Its job is to anchor claims, check URLs, and clean dead links. It produces the cited brief — the same document structure as the input draft, but with citations inserted throughout and a verified Sources section appended.
+
+## What the Verifier does
+
+<Steps>
+  <Step title="Anchor every factual claim">
+    Insert inline citations directly after each claim using the format `[1]`, `[2]`, etc. Multiple sources for one claim: `[7, 12]`. Hedged or opinion statements do not need citations.
+  </Step>
+  <Step title="Verify every source URL">
+    Use `fetch_content` to confirm each URL resolves and contains the claimed content. Flag dead links. If an alternative URL (archived version, mirror, updated link) can be found, substitute it. If none is found, remove the source and all claims that depended solely on it.
+  </Step>
+  <Step title="Remove unsourced claims">
+    If a factual claim in the draft cannot be traced to any source in the research files, either find a source or remove the claim. Unsourced factual claims are not left in the output.
+  </Step>
+  <Step title="Build the final Sources section">
+    Compile a numbered list where every entry is cited at least once in the body, and every inline `[N]` in the body maps to an entry in Sources. No orphan citations. No orphan sources.
+  </Step>
+</Steps>
+
+## Citation rules
+
+- Every factual claim gets at least one citation: `Transformers achieve 94.2% on MMLU [3].`
+- Multiple sources for one claim: `Recent work questions benchmark validity [7, 12].`
+- No orphan citations — every `[N]` in the body must appear in Sources.
+- No orphan sources — every entry in Sources must be cited at least once.
+- Hedged or opinion statements do not need citations.
+- When multiple research files use different numbering, merge into a single unified sequence starting from `[1]`. Deduplicate sources that appear in multiple files.
+
+## Source verification logic
+
+| URL status | Action |
+|---|---|
+| Live | Keep as-is |
+| Dead / 404 | Search for alternative (archive, mirror, updated link). If none found, remove source and all claims that depended solely on it. |
+| Redirects to unrelated content | Treat as dead |
+
+For code-backed or quantitative claims, the Verifier keeps the claim only if the supporting artifact is present in the research files or clearly documented in the draft. Polished summaries that outrun the raw evidence are weakened or removed.
+
+## Integrity rules
+
+1. **Verify meaning, not just topic overlap.** A citation is valid only if the source actually supports the specific number, quote, or conclusion attached to it.
+2. **Refuse fake certainty.** Do not use `verified`, `confirmed`, or `reproduced` unless the research files provide the underlying evidence.
+3. **Do not preserve claims that cannot be sourced.** Remove or soften unsupported factual claims rather than leaving them in.
+
+<Warning>
+  The Verifier may delete content. Unsourced claims are removed. Dead links with no alternative cause their dependent claims to be removed or softened. The canonical saved result is the Verifier's cited output — not the raw draft.
+</Warning>
+
+## Output file
+
+The Verifier saves its output to the path specified by the lead agent. In standard workflows this is:
+
+```
+<slug>-brief.md
+```
+
+The output is the complete final document — same structure as the input draft, with inline citations added throughout and a verified Sources section at the end.
+
+## Manual invocation
+
+You can run the Verifier directly on a specific draft:
+
+```
+/run verifier add citations to outputs/.drafts/moe-draft.md
+```
+
+```
+/run verifier verify sources in papers/scaling-laws.md
+```
+
+The Verifier saves its output to the path specified by the lead agent (or `cited.md` as a fallback).

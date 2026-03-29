@@ -1,0 +1,144 @@
+---
+title: "Deep Research"
+description: "Run a thorough, multi-agent investigation that produces a cited research brief with inline citations and a provenance record."
+---
+
+Deep Research is the flagship Feynman workflow. The lead agent plans, delegates to parallel researcher subagents, synthesizes findings, and delivers a fully cited brief — all without exposing internal orchestration steps to you unless you ask.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman deepresearch "<topic>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /deepresearch <topic>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman deepresearch "mechanistic interpretability in large language models"
+feynman deepresearch "cloud sandbox pricing models 2024"
+```
+
+```
+/deepresearch speculative decoding techniques
+/deepresearch "mixture of experts scaling properties"
+```
+
+## Workflow stages
+
+<Steps>
+  <Step title="Plan">
+    The lead agent analyzes the research question using extended thinking and produces a structured plan covering key questions, evidence types needed (papers, web, code, data, docs), parallelizable sub-questions, relevant source types and time periods, and acceptance criteria.
+
+    The plan is written to `outputs/.plans/<slug>.md` and also stored via `memory_remember` so it survives context truncation. The lead agent presents the plan and waits for your confirmation before proceeding.
+
+    <Note>
+      If `CHANGELOG.md` exists in your workspace, the lead agent reads the most recent relevant entries before finalizing the plan, enabling resumable multi-round research.
+    </Note>
+  </Step>
+
+  <Step title="Scale decision">
+    Based on the query type, the lead agent decides how many researcher subagents to spawn:
+
+    | Query type | Execution |
+    |---|---|
+    | Single fact or narrow question | Direct search — no subagents, 3–10 tool calls |
+    | Direct comparison (2–3 items) | 2 parallel `researcher` subagents |
+    | Broad survey or multi-faceted topic | 3–4 parallel `researcher` subagents |
+    | Complex multi-domain research | 4–6 parallel `researcher` subagents |
+
+    Subagents are not spawned for work that can be done in five tool calls.
+  </Step>
+
+  <Step title="Spawn researchers">
+    Parallel `researcher` subagents are launched via `subagent`. Each gets a structured brief with a clear objective, output format, tool guidance, task boundaries, and task ledger IDs. Researchers are assigned disjoint dimensions — different source types, geographic scopes, time periods, or technical angles — to avoid duplicated coverage.
+
+    Researchers write full outputs to files (e.g., `<slug>-research-web.md`, `<slug>-research-papers.md`) and pass file references back rather than returning large content into the lead agent's context.
+  </Step>
+
+  <Step title="Evaluate and loop">
+    After researchers return, the lead agent reads their output files and assesses coverage: which plan questions remain unanswered, which answers rest on a single source, whether contradictions need resolution, and whether every assigned task was completed, blocked, or explicitly superseded.
+
+    If gaps are significant, another targeted batch of researchers is spawned. There is no fixed cap on rounds — the workflow iterates until evidence is sufficient or sources are exhausted. The plan artifact (`outputs/.plans/<slug>.md`) is updated after each round.
+
+    <Tip>
+      Most topics need 1–2 rounds. The lead agent stops when additional rounds would not materially change the conclusions.
+    </Tip>
+  </Step>
+
+  <Step title="Write the report">
+    Once evidence is sufficient, the lead agent writes the full research brief directly — synthesis is never delegated. Quantitative data is rendered as charts (via `pi-charts`); architectures and processes use Mermaid diagrams.
+
+    Before finalizing, the lead agent performs a claim sweep: every critical claim, number, and figure is mapped to a source in the verification log. Unsupported claims are downgraded or removed. Inferences are labeled as inferences.
+
+    The draft is saved to `outputs/.drafts/<slug>-draft.md`.
+  </Step>
+
+  <Step title="Cite">
+    The `verifier` subagent post-processes the draft: it adds inline citations, verifies every source URL, and builds a numbered Sources section. The verifier does not rewrite the report — it only anchors claims to their sources.
+  </Step>
+
+  <Step title="Verify">
+    The `reviewer` subagent checks the cited draft for unsupported claims, logical gaps, contradictions between sections, single-source critical findings, and overconfident conclusions relative to evidence quality.
+
+    - **FATAL** issues are fixed in the brief before delivery. If FATAL issues are found, at least one additional verification pass is run after fixes.
+    - **MAJOR** issues are noted in the Open Questions section.
+    - **MINOR** issues are accepted.
+  </Step>
+
+  <Step title="Deliver">
+    The final cited and verified brief is copied to `outputs/<slug>.md`. A provenance record is written alongside it at `outputs/<slug>.provenance.md`.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Research plan | `outputs/.plans/<slug>.md` |
+| Intermediate research files | `<slug>-research-web.md`, `<slug>-research-papers.md`, etc. |
+| Draft | `outputs/.drafts/<slug>-draft.md` |
+| Final cited brief | `outputs/<slug>.md` |
+| Provenance record | `outputs/<slug>.provenance.md` |
+
+### Slug naming convention
+
+Every run derives a short **slug** from the topic: lowercase, hyphens, no filler words, five words or fewer. For example, the topic "What are cloud sandbox pricing models?" becomes `cloud-sandbox-pricing`. All artifacts in a single run share this slug as a prefix, so concurrent runs never collide.
+
+### Provenance record
+
+The `<slug>.provenance.md` sidecar records:
+
+- Date of the run
+- Number of researcher rounds
+- Sources consulted vs. accepted vs. rejected
+- Verification status (PASS or PASS WITH NOTES)
+- Path to the research plan
+- List of intermediate research files used
+
+## Background execution
+
+For topics that will clearly take a long time, or if you want unattended execution, tell the lead agent you want to run it asynchronously. The lead agent launches via `subagent` with `async: true`, reports the async ID, and tells you how to check status with `subagent_status`.
+
+```
+/deepresearch history of transformer architecture scaling
+> Run this asynchronously so I can come back later.
+```
+
+<Note>
+  Background execution is initiated when you indicate you want unattended operation, or when the lead agent determines the sweep will take a significant amount of time.
+</Note>
+
+## Related
+
+- [Literature Review](/workflows/literature-review) — focused academic paper synthesis
+- [Paper Audit](/workflows/audit) — compare paper claims against a codebase
+- [Source Comparison](/workflows/compare) — structured multi-source agreement matrix

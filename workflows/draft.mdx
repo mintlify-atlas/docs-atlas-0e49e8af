@@ -1,0 +1,119 @@
+---
+title: "Paper Draft"
+description: "Turn research findings into a polished paper-style draft with equations, sections, figures, and explicit claims."
+---
+
+The paper draft workflow turns research findings into a structured academic document. It uses the `writer` subagent to produce well-organized prose from collected notes, with inline citations, LaTeX equations where appropriate, and figures with captions.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman draft "<topic>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /draft <topic>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman draft "a survey of retrieval-augmented generation techniques"
+feynman draft "efficient fine-tuning methods for large language models"
+```
+
+```
+/draft sparse attention mechanisms: a comparative analysis
+/draft "on the scaling properties of mixture-of-experts models"
+```
+
+## Workflow stages
+
+<Steps>
+  <Step title="Outline">
+    Before writing, the lead agent outlines the draft structure: proposed title, sections, key claims to make, source material to draw from, and a verification log for critical claims, figures, and calculations. The outline is written to `outputs/.plans/<slug>.md` and presented to you for confirmation before proceeding.
+  </Step>
+
+  <Step title="Write">
+    The `writer` subagent produces the draft from the collected notes and outline. The draft includes at minimum:
+
+    - Title and abstract
+    - Problem statement
+    - Related work
+    - Method or synthesis
+    - Evidence or experiments
+    - Limitations
+    - Conclusion
+    - Sources appendix with direct URLs for all primary references
+
+    Clean Markdown is used throughout, with LaTeX where equations materially help the exposition. Quantitative data, benchmarks, and comparisons are rendered as charts using `pi-charts`; architectures and pipelines use Mermaid diagrams. Every figure includes a caption.
+  </Step>
+
+  <Step title="Cite and verify">
+    The `verifier` subagent adds inline citations to the draft and verifies every source URL.
+  </Step>
+
+  <Step title="Claim sweep">
+    Before delivery, the draft is swept for any claim that sounds stronger than its supporting evidence. Tentative results are labeled as tentative; unsupported numerics are removed rather than left for the verifier to discover.
+  </Step>
+
+  <Step title="Deliver">
+    Exactly one draft is saved to `papers/<slug>.md`.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Draft outline | `outputs/.plans/<slug>.md` |
+| Final paper draft | `papers/<slug>.md` |
+
+<Note>
+  Paper-style drafts are saved to `papers/` rather than `outputs/`. This follows the workspace output convention defined in `AGENTS.md`.
+</Note>
+
+## Draft structure
+
+The produced draft follows standard academic structure:
+
+- **Abstract** — concise summary of scope and key findings
+- **Introduction** — motivation, context, and contribution statement
+- **Related work** — survey of prior work with inline citations
+- **Method or synthesis** — the core technical content
+- **Evidence or experiments** — results, benchmarks, or analysis
+- **Limitations** — honest assessment of scope and gaps
+- **Conclusion** — summary and future directions
+- **Sources** — complete bibliography with direct URLs
+
+## Subagents used
+
+| Subagent | Role |
+|---|---|
+| `writer` | Produces the structured draft from collected notes and the confirmed outline |
+| `verifier` | Adds inline citations and verifies source URLs |
+
+## Working from existing research
+
+`/draft` is a natural follow-up to [Deep Research](/workflows/deep-research) or [Literature Review](/workflows/literature-review). When you have already gathered source material in a session, the writer draws from those findings directly rather than re-gathering sources.
+
+```
+/deepresearch "efficient attention mechanisms"
+# ... review the brief ...
+/draft "efficient attention mechanisms: a survey"
+```
+
+<Tip>
+  Run `/draft` after `/deepresearch` or `/lit` to skip the research phase. The writer uses the session's already-vetted findings to produce a more focused draft.
+</Tip>
+
+## Related
+
+- [Deep Research](/workflows/deep-research) — gather source material before drafting
+- [Literature Review](/workflows/literature-review) — structured academic survey to draw from
+- [Peer Review](/workflows/review) — review the draft once written

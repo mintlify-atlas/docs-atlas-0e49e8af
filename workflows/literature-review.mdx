@@ -1,0 +1,120 @@
+---
+title: "Literature Review"
+description: "Run a structured literature review with primary-source synthesis, consensus mapping, and gap analysis."
+---
+
+The literature review workflow produces a structured survey of the academic landscape on a given topic. It focuses on mapping the state of the field — what researchers agree on, where they disagree, and what remains unexplored — and delivers a cited, verified output to `outputs/`.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman lit "<topic>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /lit <topic>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman lit "scaling laws for language model performance"
+feynman lit "diffusion models for protein structure prediction"
+```
+
+```
+/lit mechanistic interpretability survey
+/lit "retrieval-augmented generation benchmarks"
+```
+
+## Workflow stages
+
+<Steps>
+  <Step title="Plan">
+    The lead agent outlines the review scope: key questions, source types to search (papers, web, repositories), time period, expected sections, and a small task ledger with a verification log.
+
+    The plan is written to `outputs/.plans/<slug>.md`. The lead agent presents the plan and waits for your confirmation before proceeding.
+  </Step>
+
+  <Step title="Gather">
+    For wide sweeps, the `researcher` subagent is used for delegated paper triage before synthesis. For narrow topics, the lead agent searches directly.
+
+    Researcher outputs are saved to `<slug>-research-*.md` files. Assigned tasks are never silently skipped — each is marked `done`, `blocked`, or `superseded`.
+  </Step>
+
+  <Step title="Synthesize">
+    Findings are organized into three categories: consensus, disagreements, and open questions. Where useful, concrete next experiments or follow-up reading suggestions are proposed.
+
+    Quantitative comparisons across papers are rendered as charts using `pi-charts`; taxonomies and method pipelines use Mermaid diagrams. Before finishing the draft, every strong claim is swept against the verification log and downgraded if it is inferred or single-source on a critical point.
+  </Step>
+
+  <Step title="Cite">
+    The `verifier` subagent adds inline citations to the draft and verifies every source URL.
+  </Step>
+
+  <Step title="Verify">
+    The `reviewer` subagent checks the cited draft for unsupported claims, logical gaps, zombie sections (text that references material no longer in scope), and single-source critical findings.
+
+    - **FATAL** issues are fixed before delivery. If FATAL issues are found, one additional verification pass is run after fixes.
+    - **MAJOR** issues are noted in Open Questions.
+    - **MINOR** issues are accepted.
+  </Step>
+
+  <Step title="Deliver">
+    The final literature review is saved to `outputs/<slug>.md`. A provenance record is written alongside it at `outputs/<slug>.provenance.md`.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Research plan | `outputs/.plans/<slug>.md` |
+| Intermediate research files | `<slug>-research-*.md` |
+| Final literature review | `outputs/<slug>.md` |
+| Provenance record | `outputs/<slug>.provenance.md` |
+
+### Provenance record
+
+The `<slug>.provenance.md` sidecar records:
+
+- Date of the run
+- Sources consulted vs. accepted vs. rejected
+- Verification status
+- Intermediate research files used
+
+<Note>
+  Every `/lit` output requires a `.provenance.md` sidecar. This is enforced by the workspace contract in `AGENTS.md`.
+</Note>
+
+## Subagents used
+
+| Subagent | Role |
+|---|---|
+| `researcher` | Gathers and triages source material when the sweep is wide enough to benefit from delegation |
+| `verifier` | Adds inline citations and verifies source URLs |
+| `reviewer` | Checks the cited draft for logical gaps and unsupported claims |
+
+## When to use `/lit`
+
+Use `/lit` when you need a map of the research landscape rather than a deep dive into one specific question. It is particularly useful when:
+
+- Starting a new research project and needing to understand what has already been done
+- Preparing a related work section for a paper
+- Evaluating whether a research direction is sufficiently novel
+- Identifying open problems in a field
+
+<Tip>
+  For a deeper investigation of a single focused question, use [Deep Research](/workflows/deep-research) instead.
+</Tip>
+
+## Related
+
+- [Deep Research](/workflows/deep-research) — thorough multi-agent investigation on a specific question
+- [Source Comparison](/workflows/compare) — structured agreement/disagreement matrix across sources
+- [Paper Draft](/workflows/draft) — turn review findings into a paper-style draft

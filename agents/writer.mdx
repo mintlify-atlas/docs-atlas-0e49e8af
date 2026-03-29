@@ -1,0 +1,94 @@
+---
+title: "Writer agent"
+description: "Produces structured paper-style drafts from research notes and synthesis files."
+---
+
+The Writer is Feynman's writing subagent. It takes research files produced by the Researcher and turns them into clear, structured documents — briefs, literature reviews, paper drafts, comparison reports, and summaries. The Writer is always the last substantive agent to run before the Verifier post-processes the draft.
+
+## Role
+
+The Writer synthesizes a collection of extracted claims and citations into coherent prose. It understands academic conventions: claims are attributed to sources, methodology sections are described with sufficient detail for reproduction, results are presented with appropriate qualifiers, and limitations are discussed honestly.
+
+The Writer works only from the evidence in the supplied research files. It does not introduce claims, tools, or sources that are not present in those inputs.
+
+## Input
+
+The Writer receives:
+
+- Research files produced by the Researcher (e.g., `<slug>-research-web.md`, `<slug>-research-papers.md`)
+- Synthesis notes or comparison matrices prepared by the lead agent
+- A specified output path and document type
+
+## Output
+
+The Writer saves its main artifact to the path specified by the lead agent. Default paths:
+
+| Document type | Output path |
+|---|---|
+| Research brief | `outputs/.drafts/<slug>-draft.md` |
+| Paper-style draft | `papers/<slug>.md` or `outputs/.drafts/<slug>-draft.md` |
+| Final output | `outputs/<slug>.md` or `papers/<slug>.md` |
+
+## Document types
+
+The Writer handles several document formats:
+
+- **Research briefs** — Concise summaries of a topic with key findings, produced by the deep research workflow
+- **Literature reviews** — Survey-style documents mapping consensus, disagreement, and open questions across a field
+- **Paper drafts** — Full academic papers with abstract, introduction, body sections, discussion, and open questions
+- **Comparison reports** — Structured analyses of how multiple sources agree and differ
+- **Summaries** — Condensed versions of longer documents or multi-source findings
+
+## Output structure
+
+Every draft follows this structure:
+
+```markdown
+# Title
+
+## Executive Summary
+2-3 paragraph overview of key findings.
+
+## Section 1: ...
+Detailed findings organized by theme or question.
+
+## Section N: ...
+...
+
+## Open Questions
+Unresolved issues, disagreements between sources, gaps in evidence.
+```
+
+## Visuals
+
+When research contains quantitative data, the Writer uses the `pi-charts` package to embed charts in the draft. For architectures, pipelines, or multi-step processes, it uses Mermaid diagrams. Visuals are only added when they materially improve understanding — not for decoration. Every visual has a descriptive caption and references the data it is based on.
+
+## Integrity rules
+
+The Writer follows strict constraints to preserve evidence integrity:
+
+1. **Write only from supplied evidence.** Do not introduce claims, tools, or sources that are not in the input research files.
+2. **Preserve caveats and disagreements.** Never smooth away uncertainty.
+3. **Be explicit about gaps.** If the research files have unresolved questions or conflicting evidence, surface them — do not paper them over.
+4. **Do not promote draft text into fact.** If a result is tentative, inferred, or awaiting verification, label it that way in the prose.
+5. **No aesthetic laundering.** Do not make plots, tables, or summaries look cleaner than the underlying evidence justifies.
+
+Before finishing, the Writer does a claim sweep: every strong factual statement in the draft should have an obvious source home in the research files.
+
+<Warning>
+  The Writer does **not** add inline citations or a Sources section. That is handled as a separate post-processing step by the Verifier agent. Drafts that appear to have citations added by the Writer will be treated as unverified.
+</Warning>
+
+## Manual invocation
+
+You can run the Writer directly on a specific task:
+
+```
+/run writer draft an executive summary from outputs/moe-research-papers.md
+```
+
+```
+/run writer produce a paper-style draft from the scaling-laws research files
+```
+
+The Writer saves its output to the path specified by the lead agent (or `draft.md` as a fallback).

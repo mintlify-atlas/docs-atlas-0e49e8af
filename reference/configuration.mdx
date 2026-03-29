@@ -1,0 +1,185 @@
+---
+title: "Configuration"
+description: "Configuration files, settings fields, environment variables, and session management for Feynman."
+keywords: ["configuration", "settings", "environment variables", "api keys", "session", "reference"]
+---
+
+Feynman stores all configuration and state under `~/.feynman/`. This directory is created on first run and contains settings, authentication tokens, session history, and installed packages.
+
+## Directory structure
+
+```
+~/.feynman/
+├── settings.json       # Core configuration: model, thinking level, packages
+├── auth.json           # OAuth tokens and API keys
+├── sessions/           # Persisted conversation history
+└── packages/           # Installed optional packages
+```
+
+The `settings.json` file is the primary configuration file. It is created and maintained by `feynman setup` and `feynman model set`, and can be edited manually. Do not edit it while Feynman is running.
+
+## settings.json
+
+A typical `settings.json` looks like:
+
+```json
+{
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-sonnet-4-5",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "npm:pi-subagents",
+    "npm:pi-btw",
+    "npm:pi-docparser",
+    "npm:pi-web-access",
+    "npm:pi-markdown-preview",
+    "npm:@walterra/pi-charts",
+    "npm:pi-mermaid",
+    "npm:@aliou/pi-processes",
+    "npm:pi-zotero",
+    "npm:@kaiserlich-dev/pi-session-search",
+    "npm:pi-schedule-prompt",
+    "npm:@samfp/pi-memory",
+    "npm:@tmustier/pi-ralph-wiggum"
+  ]
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `defaultProvider` | string | The model provider to use by default (e.g., `anthropic`, `openai`) |
+| `defaultModel` | string | The model ID within the provider (e.g., `claude-sonnet-4-5`) |
+| `defaultThinkingLevel` | string | Reasoning depth: `off`, `minimal`, `low`, `medium`, `high`, `xhigh` |
+| `packages` | string[] | List of Pi package sources. Managed by `feynman packages` commands |
+
+<Note>
+The `defaultProvider` and `defaultModel` fields are set together. Use `feynman model set <provider/model>` to change them — this is the recommended way to update your model.
+</Note>
+
+## Model configuration
+
+The `defaultProvider` and `defaultModel` fields together select which model Feynman uses when you launch without the `--model` flag. The format for `feynman model set` uses a `/` or `:` separator:
+
+```bash
+feynman model set anthropic/claude-opus-4-5
+feynman model set openai/gpt-5
+feynman model set google/gemini-2.5-pro
+```
+
+To see all models you have configured and their authentication status:
+
+```bash
+feynman model list
+```
+
+### Recommended models
+
+Feynman ranks models by research suitability. In order of preference:
+
+| Model spec | Reason |
+| --- | --- |
+| `anthropic/claude-opus-4-6` | Strong long-context reasoning for source-heavy research work |
+| `anthropic/claude-opus-4-5` | Strong long-context reasoning for source-heavy research work |
+| `anthropic/claude-sonnet-4-6` | Balanced reasoning and speed for iterative research sessions |
+| `anthropic/claude-sonnet-4-5` | Balanced reasoning and speed for iterative research sessions |
+| `openai/gpt-5.4` | Strong general reasoning and drafting quality for research tasks |
+| `openai/gpt-5` | Strong general reasoning and drafting quality for research tasks |
+| `google/gemini-2.5-pro` | Good fallback for broad web-and-doc research work |
+
+## Thinking levels
+
+The `defaultThinkingLevel` field controls how much extended reasoning the model applies before responding. This can be overridden per-session with `--thinking` or `FEYNMAN_THINKING`.
+
+| Level | Description |
+| --- | --- |
+| `off` | No extended thinking |
+| `minimal` | Minimal reasoning pass |
+| `low` | Light thinking |
+| `medium` | Default — balanced reasoning and speed |
+| `high` | Deep reasoning for complex research tasks |
+| `xhigh` | Maximum reasoning budget |
+
+```bash
+feynman --thinking high
+```
+
+## Environment variables
+
+Environment variables take precedence over `settings.json`. Set them in your shell profile or in a `.env` file in your working directory.
+
+### Feynman runtime
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `FEYNMAN_MODEL` | Override the default model (e.g., `anthropic/claude-sonnet-4-5`) | — |
+| `FEYNMAN_THINKING` | Override the thinking level | `medium` |
+| `FEYNMAN_HOME` | Override the config directory | `~/.feynman` |
+
+### Model provider API keys
+
+| Variable | Provider |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Anthropic (Claude) |
+| `OPENAI_API_KEY` | OpenAI (GPT) |
+| `GEMINI_API_KEY` | Google Gemini |
+| `OPENROUTER_API_KEY` | OpenRouter |
+| `ZAI_API_KEY` | Z.AI / GLM |
+| `KIMI_API_KEY` | Kimi / Moonshot |
+| `MINIMAX_API_KEY` | MiniMax |
+| `MINIMAX_CN_API_KEY` | MiniMax (China region) |
+| `MISTRAL_API_KEY` | Mistral |
+| `GROQ_API_KEY` | Groq |
+| `XAI_API_KEY` | xAI (Grok) |
+| `CEREBRAS_API_KEY` | Cerebras |
+| `HF_TOKEN` | Hugging Face |
+| `OPENCODE_API_KEY` | OpenCode |
+| `AI_GATEWAY_API_KEY` | Vercel AI Gateway |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI Responses |
+
+### Compute providers
+
+| Variable | Description |
+| --- | --- |
+| `RUNPOD_API_KEY` | RunPod GPU pod provisioning (used by `/replicate` and `/autoresearch`) |
+| `MODAL_TOKEN_ID` | Modal serverless GPU — token ID |
+| `MODAL_TOKEN_SECRET` | Modal serverless GPU — token secret |
+
+<Tip>
+API keys are read by the Pi runtime. You can also configure them via `feynman model login` for OAuth-based providers, or place them in `~/.feynman/auth.json` for key-based providers. The `auth.json` file is managed by the Pi runtime.
+</Tip>
+
+## Session management
+
+Each conversation is persisted as a file in `~/.feynman/sessions/`. Sessions allow you to resume previous conversations and maintain context across REPL restarts.
+
+To start a fresh session:
+
+```bash
+feynman --new-session
+```
+
+To store sessions in a different directory (useful for per-project isolation):
+
+```bash
+feynman --session-dir ~/projects/myproject/.sessions
+```
+
+The `--session-dir` flag is particularly useful when you want separate conversation histories for different research projects.
+
+## Diagnostics
+
+Run `feynman doctor` to verify your configuration, check authentication status for all configured providers, and detect missing optional dependencies:
+
+```bash
+feynman doctor
+```
+
+The doctor command outputs a checklist showing what is working and what needs attention — including missing API keys, unauthenticated providers, missing preview dependencies, and Pi runtime issues.
+
+```bash
+feynman status
+```
+
+`feynman status` shows a compact summary of your current setup: active model, auth status, installed packages, and session directory.

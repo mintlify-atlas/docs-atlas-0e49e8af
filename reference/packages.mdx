@@ -1,0 +1,121 @@
+---
+title: "Packages"
+description: "Core and optional Pi packages bundled with Feynman, and how to manage them."
+keywords: ["packages", "pi", "presets", "install", "update", "reference"]
+---
+
+Feynman is built on the Pi runtime and uses curated Pi packages for its capabilities. Core packages are installed by default to keep first-run setup fast. Optional packages can be added on demand with `feynman packages install`.
+
+## Core packages
+
+These packages are installed automatically with every Feynman installation. They provide the foundation for all research workflows and the REPL experience.
+
+| Package | Purpose |
+| --- | --- |
+| `@companion-ai/alpha-hub` | alphaXiv integration for paper search, discussion threads, and citation metadata |
+| `pi-subagents` | Parallel agent spawning for literature gathering and task decomposition. Powers all multi-agent research workflows |
+| `pi-btw` | Fast side-thread conversations without interrupting the main research run |
+| `pi-docparser` | Parse PDFs, Office documents, spreadsheets, and images for content extraction |
+| `pi-web-access` | Web browsing, GitHub access, PDF fetching, and media retrieval |
+| `pi-markdown-preview` | Render Markdown and LaTeX-heavy research documents as polished HTML/PDF |
+| `@walterra/pi-charts` | Generate charts and quantitative visualizations from data |
+| `pi-mermaid` | Render Mermaid diagrams in the terminal UI |
+| `@aliou/pi-processes` | Manage long-running experiments, background tasks, and log tailing. Powers `/ps` |
+| `pi-zotero` | Integration with Zotero for citation library management |
+| `@kaiserlich-dev/pi-session-search` | Indexed session recall with summarize and resume UI. Powers `/search` |
+| `pi-schedule-prompt` | Schedule recurring and deferred research jobs. Powers the `/watch` workflow |
+| `@samfp/pi-memory` | Automatic preference and correction memory across sessions |
+| `@tmustier/pi-ralph-wiggum` | Long-running autonomous agent loops. Powers `/autoresearch` |
+
+Core packages are updated together when you run `feynman update`. You do not need to manage them individually.
+
+## Optional packages
+
+Install these on demand with `feynman packages install <preset>`. They extend Feynman with capabilities that not every user needs.
+
+| Preset | Package | Purpose |
+| --- | --- | --- |
+| `generative-ui` | `pi-generative-ui` | Interactive Glimpse UI widgets for rich, HTML-style output in the REPL |
+
+<Note>
+The `generative-ui` preset can also be installed using the alias `ui`: `feynman packages install ui`.
+</Note>
+
+## Managing packages
+
+### List packages
+
+Show all available packages and their install status:
+
+```bash
+feynman packages list
+```
+
+This displays core packages (always installed) and optional presets with an `(installed)` marker for any that are already active.
+
+### Install optional packages
+
+```bash
+feynman packages install generative-ui
+```
+
+### Update packages
+
+Update all installed packages to their latest versions:
+
+```bash
+feynman update
+```
+
+Update a specific package by name:
+
+```bash
+feynman update pi-subagents
+feynman update pi-web-access
+```
+
+Running `feynman update` without arguments updates everything. Updates are safe and preserve your configuration and session data.
+
+## What packages enable
+
+<AccordionGroup>
+  <Accordion title="Research workflows (pi-subagents)">
+    The `pi-subagents` package enables Feynman to spawn and coordinate parallel research agents. Every multi-agent workflow — `/deepresearch`, `/lit`, `/review`, `/audit`, `/replicate`, `/compare`, and `/draft` — depends on this package to delegate work across `researcher`, `reviewer`, `writer`, and `verifier` subagents simultaneously.
+  </Accordion>
+
+  <Accordion title="Web access and paper retrieval (pi-web-access, @companion-ai/alpha-hub)">
+    `pi-web-access` gives Feynman access to the web, GitHub repositories, and arbitrary PDFs during research. `@companion-ai/alpha-hub` adds alphaXiv-specific paper search, discussion thread access, and citation metadata. Together they form the primary source-gathering layer for all research workflows.
+  </Accordion>
+
+  <Accordion title="Document parsing (pi-docparser)">
+    `pi-docparser` lets Feynman ingest PDFs, Word documents, spreadsheets, and images as input to research tasks. Drop a PDF into your working directory and Feynman can read and cite it.
+  </Accordion>
+
+  <Accordion title="Preview and export (pi-markdown-preview)">
+    `pi-markdown-preview` renders research artifacts — including LaTeX equations — as HTML or PDF directly from the REPL via the `/preview` command. Requires pandoc, which can be installed via `feynman --setup-preview`.
+  </Accordion>
+
+  <Accordion title="Session search (@kaiserlich-dev/pi-session-search)">
+    Enables the `/search` command for indexed recall of prior session transcripts. Useful for finding past research, resuming context from previous sessions, or surfacing earlier findings without re-running a workflow.
+  </Accordion>
+
+  <Accordion title="Memory (@samfp/pi-memory)">
+    Automatically records your preferences and corrections across sessions. If you consistently prefer a particular output format or correct the same terminology, memory surfaces those preferences in future sessions.
+  </Accordion>
+
+  <Accordion title="Background processes (@aliou/pi-processes)">
+    Provides the `/ps` command for inspecting active background tasks, running experiments, and scheduled follow-ups. Used by `/autoresearch` and `/watch` to manage long-running work.
+  </Accordion>
+
+  <Accordion title="Scheduled research (pi-schedule-prompt)">
+    Powers the `/watch` workflow by creating durable scheduled or recurring prompts. When you set a watch on a topic, `pi-schedule-prompt` ensures follow-up sweeps happen at the configured frequency — not just when you remember to ask.
+  </Accordion>
+
+  <Accordion title="Autonomous loops (@tmustier/pi-ralph-wiggum)">
+    Powers the `/autoresearch` command. Manages the iteration state, benchmark command execution, experiment logging, and keep/revert decisions across many optimization cycles.
+  </Accordion>
+
+  <Accordion title="Generative UI (pi-generative-ui) — optional">
+    Adds interactive Glimpse UI widgets to REPL output. Useful when you want richer, HTML-style interactive displays rather than plain Markdown. Install with `feynman packages install generative-ui`.
+  </Accordion>
+</AccordionGroup>

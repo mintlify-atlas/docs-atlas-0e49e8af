@@ -1,0 +1,111 @@
+---
+title: "Web search"
+description: "Web search routing, configuration, session search, and when to use web search vs. paper search."
+---
+
+Feynman's web search tool retrieves current information from the web during research workflows. It supports multiple simultaneous queries, domain filtering, recency filtering, and full-page content retrieval. The Researcher agent uses web search alongside AlphaXiv to gather evidence from non-academic sources.
+
+## Default behavior
+
+The default path is zero-config Gemini grounding via a signed-in Chromium profile. No API keys are required. This works on macOS and Linux where a Chromium-based browser is installed and signed in to a Google account.
+
+For headless environments, CI pipelines, or servers without a browser, configure an explicit API key for Perplexity or Gemini.
+
+## Routing modes
+
+Feynman supports three web search backends:
+
+| Mode | Description |
+|---|---|
+| `auto` | Prefer Perplexity when a key is configured, fall back to Gemini. |
+| `perplexity` | Force Perplexity Sonar for all web searches. |
+| `gemini` | Force Gemini grounding (zero-config default). |
+
+## Configuration
+
+Check the current search configuration:
+
+```bash
+feynman search status
+```
+
+This prints the active route, configured providers, browser profile, and config file path.
+
+Edit `~/.feynman/web-search.json` to configure the backend:
+
+```json
+{
+  "route": "auto",
+  "perplexityApiKey": "pplx-...",
+  "geminiApiKey": "AIza..."
+}
+```
+
+Set `route` to `auto`, `perplexity`, or `gemini`. When using `auto`, Feynman prefers Perplexity if a key is present, then falls back to Gemini.
+
+## Search features
+
+The web search tool exposes several capabilities that the Researcher uses automatically:
+
+- **Multiple queries** — Send 2–4 varied-angle queries simultaneously for broader topic coverage. The Researcher generates queries from different angles to catch sources that use different terminology.
+- **Domain filtering** — Restrict results to specific domains such as `arxiv.org`, `github.com`, or `nature.com` using `domainFilter`.
+- **Recency filtering** — Filter results by date using `recencyFilter`, useful for fast-moving topics where only recent work matters.
+- **Full content retrieval** — Fetch complete page content for the most important results using `includeContent: true`, rather than relying on snippets alone.
+
+## Web search vs. paper search
+
+Use web search and paper search for different kinds of questions:
+
+<Tabs>
+  <Tab title="Use web search for">
+    - Current products, companies, and markets
+    - Model availability and pricing
+    - Software releases and documentation
+    - Regulations, news, and recent events
+    - Anything phrased as "latest", "current", "recent", or "today"
+    - Engineering topics with official docs and code repositories
+  </Tab>
+  <Tab title="Use paper search (AlphaXiv) for">
+    - Academic literature and foundational research
+    - Survey-style coverage of a field
+    - Specific paper reading and Q&A
+    - Citation chains and related work discovery
+    - Benchmarks described in published papers
+  </Tab>
+</Tabs>
+
+<Warning>
+  Never answer a latest/current question from paper search alone. Academic databases lag current events. For AI model or product claims, prefer official vendor pages and recent web sources over old papers.
+</Warning>
+
+For mixed topics — such as a new model that has both a launch announcement and a companion paper — the Researcher combines both channels: web sources for current reality and paper sources for the underlying research.
+
+## Session search
+
+Session search lets you recover prior Feynman work from stored session transcripts. Every Feynman session is persisted to disk at `~/.feynman/sessions/`.
+
+Session search is an optional package. Install it with:
+
+```bash
+feynman packages install session-search
+```
+
+Once installed, the `/search` slash command becomes available in all future sessions:
+
+```
+/search transformer scaling laws
+```
+
+You can also reference prior work naturally in conversation. Feynman invokes session search automatically when you mention previous research or ask to continue earlier work — for example, "pick up where I left off on protein folding."
+
+**What session search indexes:**
+- Full session transcripts including your prompts and Feynman's responses
+- Tool outputs and agent results from workflows
+- Generated artifacts such as drafts, reports, and comparison matrices
+- Metadata like timestamps, topics, and workflow types
+
+The search uses both keyword matching and semantic similarity. Results include the session ID, timestamp, and relevant excerpts so you can identify which session contains the information you need.
+
+<Tip>
+  Use session search before launching a new round of research on a topic you have investigated before. It can surface prior findings, citations, and artifacts without re-running an expensive workflow.
+</Tip>

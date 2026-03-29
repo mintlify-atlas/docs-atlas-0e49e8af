@@ -1,0 +1,98 @@
+---
+title: "Research Watch"
+description: "Set up a recurring or deferred research watch on a topic, company, paper area, or product surface."
+---
+
+The research watch workflow sets up ongoing monitoring of a research topic. It takes a baseline sweep, then uses `schedule_prompt` to create a recurring or deferred follow-up — rather than merely promising to check later. New papers, articles, and developments are surfaced as they appear.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman watch "<topic>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /watch <topic>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman watch "new developments in state space models for sequence modeling"
+feynman watch "mechanistic interpretability papers 2025"
+```
+
+```
+/watch speculative decoding research
+/watch "Anthropic safety papers"
+```
+
+## Workflow stages
+
+<Steps>
+  <Step title="Plan">
+    Before starting, the lead agent outlines the watch plan: what to monitor, what signals matter, what counts as a meaningful change, and the check frequency. The plan is written to `outputs/.plans/<slug>.md` and presented to you for confirmation before proceeding.
+  </Step>
+
+  <Step title="Baseline sweep">
+    A baseline sweep of the topic is run immediately, capturing the current state of the research landscape. This gives the watch a reference point so that future checks surface only genuinely new material.
+
+    The baseline is saved to `outputs/<slug>-baseline.md` and ends with a `Sources` section containing direct URLs for every source found.
+  </Step>
+
+  <Step title="Schedule">
+    `schedule_prompt` is used to create the recurring or delayed follow-up. This means the watch is real and scheduled — not a promise to check later. The schedule is configured according to the check frequency agreed in the plan.
+
+    <Note>
+      The recurring follow-up runs the same researcher logic as the baseline sweep, comparing new results against the baseline to surface only new material.
+    </Note>
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Watch plan | `outputs/.plans/<slug>.md` |
+| Baseline research snapshot | `outputs/<slug>-baseline.md` |
+
+## Managing watches
+
+List all active watches and their status:
+
+```
+/jobs
+```
+
+The `/jobs` command shows active watches along with their schedule, last check time, and number of new items found. You can pause, resume, or delete watches from within the REPL.
+
+## Watch check output
+
+Each scheduled check produces a summary of new material since the last run:
+
+- **New papers** — titles, authors, and summaries of newly discovered papers relevant to your topic
+- **New articles** — relevant blog posts, documentation updates, or news articles
+- **Relevance notes** — why each item was flagged as relevant to your watch topic
+
+## When to use `/watch`
+
+Use `/watch` to stay current on a research area without manually searching every day. It is particularly useful for:
+
+- Fast-moving fields where new papers appear frequently
+- Tracking specific research groups or topics related to your own work
+- Monitoring the literature while focused on other tasks
+- Keeping up with a competitor's publication record or a product area you care about
+
+<Tip>
+  Combine `/watch` with [Deep Research](/workflows/deep-research) to set up a watch after an initial deep dive — the baseline sweep will align with what you already know, so only genuinely new material is surfaced.
+</Tip>
+
+## Related
+
+- [Deep Research](/workflows/deep-research) — run a one-time deep investigation before setting up ongoing monitoring
+- [Literature Review](/workflows/literature-review) — produce a structured snapshot of the current state of a field

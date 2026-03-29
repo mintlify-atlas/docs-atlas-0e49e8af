@@ -1,0 +1,60 @@
+---
+title: Introduction
+description: Feynman is an open source AI research agent CLI for searching papers, synthesizing evidence, verifying citations, and replicating experiments.
+keywords: ['feynman', 'research agent', 'cli', 'literature review', 'alphaxiv']
+---
+
+Feynman is an open source AI research agent that runs in your terminal. It searches academic papers, synthesizes evidence across sources, verifies citations, and replicates experiments — all from a conversational interface built on [Pi](https://github.com/badlogic/pi-mono) and [alphaXiv](https://www.alphaxiv.org/).
+
+Every output is source-grounded. Claims link to papers, docs, or repositories with direct URLs. You can ask naturally in free-form language or use slash commands to invoke specific research workflows.
+
+## Research subagents
+
+Feynman ships four bundled research subagents that are dispatched automatically depending on the workflow:
+
+- **Researcher** — gathers evidence across papers, the web, repositories, and documentation
+- **Writer** — produces structured paper-style drafts from research notes
+- **Reviewer** — runs simulated peer review with severity-graded feedback and a revision plan
+- **Verifier** — checks inline citations, verifies source URLs, and cleans up dead links
+
+The lead agent plans and delegates work; subagents handle decomposed subtasks and hand off results via files.
+
+## Research workflows
+
+Ask Feynman in natural language or use slash commands as shortcuts. The table below lists the built-in workflows:
+
+| Command | Description |
+| --- | --- |
+| `/deepresearch <topic>` | Source-heavy multi-agent investigation with parallel researchers, synthesis, and verification |
+| `/lit <topic>` | Literature review with consensus findings, disagreements, and open questions |
+| `/review <artifact>` | Simulated peer review with severity ratings and a revision plan |
+| `/audit <item>` | Compares paper claims against the public codebase to surface mismatches |
+| `/replicate <paper>` | Replicates experiments on local or cloud GPUs |
+| `/compare <topic>` | Side-by-side source comparison matrix |
+| `/draft <topic>` | Paper-style draft from research findings |
+| `/autoresearch <idea>` | Autonomous experiment loop |
+| `/watch <topic>` | Recurring research watch on an evolving topic |
+| `/outputs` | Browse all research artifacts (papers, outputs, notes) |
+
+## How it works
+
+Feynman is built on [Pi](https://github.com/badlogic/pi-mono) for the agent runtime and [alphaXiv](https://www.alphaxiv.org/) for paper search, Q&A, code reading, and annotations. Research capabilities are delivered as Pi skills — Markdown instruction files synced to `~/.feynman/agent/skills/` on startup.
+
+Additional tools include Docker for isolated container execution, Gemini or Perplexity for zero-config web search, Modal for serverless GPU compute, and RunPod for persistent GPU pods.
+
+## Get started
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/getting-started/installation">
+    Install Feynman on macOS, Linux, or Windows using the one-line installer, pnpm, or bun.
+  </Card>
+  <Card title="Setup" icon="gear" href="/getting-started/setup">
+    Configure your model provider, API keys, and alphaXiv authentication.
+  </Card>
+  <Card title="Quick Start" icon="bolt" href="/getting-started/quickstart">
+    Launch the REPL, run your first research query, and explore slash commands.
+  </Card>
+  <Card title="CLI Commands" icon="terminal" href="/reference/cli-commands">
+    Full reference for all Feynman CLI commands and flags.
+  </Card>
+</CardGroup>

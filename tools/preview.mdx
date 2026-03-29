@@ -1,0 +1,94 @@
+---
+title: "Preview & export"
+description: "Render generated artifacts as HTML or PDF and open them in your browser or PDF viewer."
+---
+
+The preview tool renders Feynman's generated artifacts — research briefs, paper drafts, and any document with LaTeX math, tables, or complex formatting — as polished HTML or PDF. This is particularly useful for artifacts that do not render well in a terminal.
+
+## Setup
+
+Preview requires `pandoc` for Markdown-to-HTML and Markdown-to-PDF rendering. Install preview dependencies with:
+
+```bash
+feynman --setup-preview
+```
+
+Or as part of initial setup:
+
+```bash
+feynman setup
+```
+
+The setup command attempts to install pandoc automatically using your platform's package manager:
+
+- **macOS with Homebrew** — installs pandoc via `brew install pandoc`
+- **Windows** — installs pandoc via `winget install JohnMacFarlane.Pandoc`
+- **Linux** — installs pandoc via `apt-get install pandoc`
+
+If the automatic install does not work, install pandoc manually from [pandoc.org/installing.html](https://pandoc.org/installing.html) and rerun `feynman --setup-preview` to verify the installation.
+
+## Usage
+
+Inside the Feynman REPL, preview the most recent artifact:
+
+```
+/preview
+```
+
+Preview a specific file:
+
+```
+/preview outputs/scaling-laws-brief.md
+```
+
+Additional preview commands:
+
+| Command | Description |
+|---|---|
+| `/preview` | Preview the most recent artifact in the browser |
+| `/preview --file <path>` | Preview a specific file |
+| `/preview-browser` | Force browser preview |
+| `/preview-pdf` | Export to PDF via pandoc |
+| `/preview-clear-cache` | Clear the rendered preview cache |
+
+If preview commands are not available, you can open files directly:
+
+```bash
+open <file.md>   # macOS — opens in default app
+open <file.pdf>  # macOS — opens in Preview
+```
+
+## Supported formats
+
+The preview tool handles three output formats:
+
+<Tabs>
+  <Tab title="Markdown">
+    Converted to HTML with full LaTeX math support via KaTeX, syntax-highlighted code blocks, and clean typography. Opens in your default browser as a local file.
+  </Tab>
+  <Tab title="HTML">
+    Opened directly in your default browser with no conversion step.
+  </Tab>
+  <Tab title="PDF">
+    Generated via pandoc with LaTeX rendering. Suitable for sharing or printing. Requires pandoc to be installed.
+  </Tab>
+</Tabs>
+
+## LaTeX math support
+
+For documents with heavy math notation — common in research drafts — the preview ensures all LaTeX expressions render correctly:
+
+- Inline math: `$E = mc^2$`
+- Display math: `$$\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}$$`
+
+Tables, citation lists, and nested blockquotes all render with proper formatting.
+
+<Warning>
+  HTML and PDF preview outputs are temporary render artifacts. The canonical saved result is always the Markdown file. Do not treat the rendered output as the primary deliverable — it is a view, not the source.
+</Warning>
+
+## How it works
+
+The `pi-markdown-preview` package handles the rendering pipeline. For Markdown files, it converts to HTML with a clean stylesheet, proper code highlighting, and rendered math equations. The preview opens in your default browser as a local file.
+
+The preview stylesheet is designed for research documents and includes styles for heading hierarchy, syntax-highlighted code blocks, tables, inline and display math equations, citation formatting, and blockquotes.

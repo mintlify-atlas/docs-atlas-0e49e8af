@@ -1,0 +1,108 @@
+---
+title: "Paper Audit"
+description: "Compare a paper's claims against its public codebase and identify mismatches, omissions, and reproducibility risks."
+---
+
+The paper audit workflow bridges the gap between what a paper says and what the code actually does. It systematically compares claimed methods, defaults, metrics, and data handling against the real implementation and produces a single audit artifact documenting every discrepancy.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman audit "<paper or repo>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /audit <paper or repo>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman audit "arxiv:2401.12345"
+feynman audit "https://github.com/org/repo --paper arxiv:2401.12345"
+```
+
+```
+/audit arxiv:2310.06825
+/audit "LoRA: Low-Rank Adaptation of Large Language Models"
+```
+
+When given an arXiv ID, Feynman locates the associated code repository from the paper's links, Papers With Code, or a GitHub search. You can also provide the repository URL directly.
+
+## Workflow stages
+
+<Steps>
+  <Step title="Plan">
+    Before starting, the lead agent outlines the audit plan: which paper, which repository, and which claims to check. The plan is written to `outputs/.plans/<slug>.md` and presented to you for confirmation before any investigation begins.
+  </Step>
+
+  <Step title="Gather evidence">
+    The `researcher` subagent gathers evidence from both the paper and the codebase. It reads the paper and extracts concrete claims — hyperparameters, architecture details, training procedures, dataset splits, evaluation metrics, and reported results — tagging each with its location in the paper for traceability.
+
+    It then examines the codebase to find the corresponding implementation: configuration files, training scripts, model definitions, and evaluation code.
+  </Step>
+
+  <Step title="Compare">
+    Claims from the paper are systematically compared against the code. The audit calls out:
+
+    - **Mismatches** — hyperparameters that differ, training steps described but not implemented, evaluation procedures that deviate from the paper
+    - **Missing code** — claims in the paper with no corresponding implementation
+    - **Ambiguous defaults** — implementation choices that the paper does not specify
+    - **Reproducibility risks** — missing random seeds, non-deterministic operations without pinned versions, hardcoded paths, absent environment specifications
+  </Step>
+
+  <Step title="Cite and verify">
+    For non-trivial audits, the `verifier` subagent verifies sources and adds inline citations to the audit report, with exact file paths and line numbers for every documented mismatch.
+  </Step>
+
+  <Step title="Deliver">
+    Exactly one audit artifact is saved to `outputs/<slug>-audit.md`. The report ends with a `Sources` section containing paper and repository URLs.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Audit plan | `outputs/.plans/<slug>.md` |
+| Audit report | `outputs/<slug>-audit.md` |
+
+## Audit report structure
+
+The audit report covers:
+
+- **Match summary** — proportion of paper claims that match the code
+- **Confirmed claims** — claims accurately reflected in the codebase, with code references
+- **Mismatches** — discrepancies between paper and code with evidence from both, citing paper section and code file/line
+- **Missing implementations** — claims in the paper with no corresponding code
+- **Reproducibility risks** — missing seeds, unpinned dependencies, hardcoded paths, absent environment specs
+
+## Subagents used
+
+| Subagent | Role |
+|---|---|
+| `researcher` | Reads the paper and codebase to extract and compare claims |
+| `verifier` | Verifies sources and adds inline citations for non-trivial audits |
+
+## When to use `/audit`
+
+Use `/audit` when:
+
+- Deciding whether to build on a paper's results and want to know if the code matches the claims
+- Replicating an experiment and need to identify where the paper is underspecified
+- Reviewing a paper for a venue and want to verify claims against the code
+- Auditing your own paper before submission to catch inconsistencies between your writeup and implementation
+
+<Tip>
+  Combine `/audit` with [Experiment Replication](/workflows/replication) to first identify discrepancies and then execute the replication with those discrepancies in mind.
+</Tip>
+
+## Related
+
+- [Experiment Replication](/workflows/replication) — execute the replication steps identified during an audit
+- [Peer Review](/workflows/review) — simulate academic peer review with severity-graded feedback

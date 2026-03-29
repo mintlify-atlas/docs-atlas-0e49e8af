@@ -1,0 +1,112 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Feynman",
+  "projectDescription": "An open source AI research agent CLI that performs deep literature reviews, multi-agent investigations, experiment replication, and source-grounded research briefs via an interactive REPL and slash command workflows.",
+  "theme": "luma",
+  "primaryColor": "#a1bf81",
+  "lightColor": "#2c343c",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "getting-started/introduction",
+              "getting-started/installation",
+              "getting-started/setup",
+              "getting-started/quickstart"
+            ]
+          },
+          {
+            "group": "Research Workflows",
+            "pages": [
+              "workflows/deep-research",
+              "workflows/literature-review",
+              "workflows/replication",
+              "workflows/audit",
+              "workflows/review",
+              "workflows/compare",
+              "workflows/draft",
+              "workflows/watch"
+            ]
+          },
+          {
+            "group": "Agents & Tools",
+            "pages": [
+              "agents/overview",
+              "agents/researcher",
+              "agents/writer",
+              "agents/reviewer",
+              "agents/verifier",
+              "tools/alphaxiv",
+              "tools/web-search",
+              "tools/compute",
+              "tools/preview"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/cli-commands",
+              "reference/slash-commands",
+              "reference/configuration",
+              "reference/packages",
+              "reference/contributing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-agent deep research with parallel researcher subagents and automated synthesis",
+    "Literature review with citation verification and peer-review simulation",
+    "Experiment replication on local, Docker, Modal, or RunPod GPU infrastructure",
+    "Paper-vs-codebase audit to detect claim mismatches",
+    "Source-grounded outputs with inline citations and provenance records",
+    "AlphaXiv integration for academic paper search, Q&A, and annotation",
+    "Session search and persistent memory across research sessions",
+    "Recurring research watches and scheduled background jobs",
+    "Skill library installable standalone without the full CLI"
+  ],
+  "publicApiSurface": [
+    "feynman (REPL)",
+    "feynman setup",
+    "feynman doctor",
+    "feynman status",
+    "feynman model list|login|logout|set",
+    "feynman alpha login|logout|status",
+    "feynman packages list|install <preset>",
+    "feynman update [package]",
+    "feynman search status",
+    "feynman deepresearch <topic>",
+    "feynman lit <topic>",
+    "feynman review <artifact>",
+    "feynman audit <paper>",
+    "feynman replicate <paper>",
+    "feynman compare <topic>",
+    "feynman draft <topic>",
+    "feynman watch <topic>",
+    "/deepresearch <topic>",
+    "/lit <topic>",
+    "/review <artifact>",
+    "/audit <item>",
+    "/replicate <paper>",
+    "/compare <topic>",
+    "/draft <topic>",
+    "/autoresearch <idea>",
+    "/watch <topic>",
+    "/outputs",
+    "/help",
+    "/init",
+    "--prompt <text>",
+    "--model <provider/model>",
+    "--thinking <level>",
+    "--cwd <path>",
+    "--session-dir <path>",
+    "--new-session"
+  ]
+}

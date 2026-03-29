@@ -1,0 +1,150 @@
+---
+title: "CLI Commands"
+description: "Complete reference for all Feynman CLI commands, workflow commands, and flags."
+keywords: ["cli", "commands", "flags", "feynman", "reference"]
+---
+
+This page covers every Feynman CLI command and flag. Research workflow commands like `feynman deepresearch` are also documented in the [Slash Commands](/reference/slash-commands) reference, since they map directly to REPL slash commands.
+
+## Core commands
+
+| Command | Description |
+| --- | --- |
+| `feynman` | Launch the interactive REPL |
+| `feynman chat [prompt]` | Start chat explicitly, optionally with an initial prompt |
+| `feynman help` | Show CLI help |
+| `feynman setup` | Run the guided setup wizard |
+| `feynman doctor` | Diagnose config, auth, Pi runtime, and preview dependencies |
+| `feynman status` | Show the current setup summary (model, auth, packages) |
+
+<Tip>
+Run `feynman setup` first on a new machine. Feynman will also auto-launch setup if no model is configured and stdin is a TTY.
+</Tip>
+
+## Model management
+
+| Command | Description |
+| --- | --- |
+| `feynman model list` | List available models in Pi auth storage |
+| `feynman model login [id]` | Login to a Pi OAuth model provider |
+| `feynman model logout [id]` | Logout from a Pi OAuth model provider |
+| `feynman model set <provider/model>` | Set the default model for all sessions |
+
+The `model set` command writes the new default to `~/.feynman/settings.json`. The format is `provider/model-name`:
+
+```bash
+feynman model set anthropic/claude-sonnet-4-5
+feynman model set openai/gpt-5
+```
+
+To see all models you have configured and their authentication status:
+
+```bash
+feynman model list
+```
+
+## AlphaXiv commands
+
+| Command | Description |
+| --- | --- |
+| `feynman alpha login` | Sign in to alphaXiv |
+| `feynman alpha logout` | Clear alphaXiv auth |
+| `feynman alpha status` | Check alphaXiv auth status |
+
+AlphaXiv authentication enables Feynman to search and retrieve papers, access discussion threads, and pull citation metadata. Once authenticated, the `alpha` tools are available inside the REPL for paper search, Q&A, and code inspection.
+
+## Package management
+
+| Command | Description |
+| --- | --- |
+| `feynman packages list` | Show core and optional Pi package presets with install status |
+| `feynman packages install <preset>` | Install an optional package preset |
+| `feynman update [package]` | Update installed packages, or a specific package by name |
+
+Use `feynman packages list` to see which optional packages are available and which are already installed. Pass a specific package name to `feynman update` to update only that package. See [Packages](/reference/packages) for the full list of presets.
+
+```bash
+feynman packages install generative-ui
+feynman update
+feynman update pi-subagents
+```
+
+## Utility commands
+
+| Command | Description |
+| --- | --- |
+| `feynman search status` | Show Pi web-access status and config path |
+
+## Workflow commands
+
+All research workflow slash commands can also be invoked directly from the CLI. Feynman translates them into the corresponding REPL slash command on launch:
+
+| Command | Description |
+| --- | --- |
+| `feynman deepresearch <topic>` | Run a thorough, source-heavy investigation and produce a research brief with inline citations |
+| `feynman lit <topic>` | Run a literature review using paper search and primary-source synthesis |
+| `feynman review <artifact>` | Simulate an AI research peer review with likely objections, severity, and a revision plan |
+| `feynman audit <item>` | Compare a paper's claims against its public codebase for mismatches and reproducibility risks |
+| `feynman replicate <paper>` | Plan or execute a replication workflow for a paper, claim, or benchmark |
+| `feynman compare <topic>` | Compare multiple sources and produce a source-grounded agreement/disagreement matrix |
+| `feynman draft <topic>` | Turn research findings into a polished paper-style draft |
+| `feynman autoresearch <idea>` | Autonomous experiment loop — try ideas, measure results, repeat |
+| `feynman watch <topic>` | Set up a recurring or deferred research watch on a topic |
+
+```bash
+feynman deepresearch "mechanistic interpretability in transformers"
+feynman lit "diffusion models for protein folding"
+feynman review outputs/my-paper.md
+feynman audit 2401.12345
+feynman replicate "GPT-4 MMLU benchmark"
+feynman compare "LoRA vs full fine-tuning"
+feynman draft "scaling laws for retrieval-augmented generation"
+feynman watch "llm reasoning benchmarks"
+feynman autoresearch "minimize bundle size of my webapp"
+```
+
+These are equivalent to launching the REPL and typing the corresponding slash command. The CLI form is useful for scripting and automation.
+
+## Flags
+
+| Flag | Description |
+| --- | --- |
+| `--prompt "<text>"` | Run one prompt and exit (one-shot mode) |
+| `--model <provider:model>` | Force a specific model for this session |
+| `--thinking <level>` | Set thinking level: `off`, `minimal`, `low`, `medium`, `high`, `xhigh` |
+| `--cwd <path>` | Set the working directory for all file operations |
+| `--session-dir <path>` | Set the session storage directory |
+| `--new-session` | Start a new persisted session |
+| `--alpha-login` | Sign in to alphaXiv and exit |
+| `--alpha-logout` | Clear alphaXiv auth and exit |
+| `--alpha-status` | Show alphaXiv auth status and exit |
+| `--doctor` | Alias for `feynman doctor` |
+| `--setup-preview` | Install preview dependencies (pandoc) |
+
+### Thinking levels
+
+The `--thinking` flag (and `FEYNMAN_THINKING` env var) controls how much extended reasoning the model applies before responding. Higher levels produce more thorough analysis at the cost of latency and token usage.
+
+| Level | Description |
+| --- | --- |
+| `off` | No extended thinking |
+| `minimal` | Minimal reasoning pass |
+| `low` | Light thinking |
+| `medium` | Default — balanced reasoning and speed |
+| `high` | Deep reasoning for complex research tasks |
+| `xhigh` | Maximum reasoning budget |
+
+```bash
+# One-shot mode
+feynman --prompt "Summarize the key findings in outputs/my-brief.md"
+
+# Force a model for one session
+feynman --model anthropic/claude-opus-4-5 --thinking high
+
+# Per-project session isolation
+feynman --session-dir ~/projects/myproject/.sessions
+```
+
+<Note>
+`--model` accepts both `/` and `:` as separators (`anthropic/claude-sonnet-4-5` and `anthropic:claude-sonnet-4-5` are both valid).
+</Note>

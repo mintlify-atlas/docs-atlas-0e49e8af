@@ -1,0 +1,110 @@
+---
+title: "Source Comparison"
+description: "Compare multiple sources on a topic and produce a source-grounded matrix of agreements, disagreements, and confidence levels."
+---
+
+The source comparison workflow analyzes multiple papers, articles, or documents side by side and produces a structured matrix showing where they agree, where they disagree, and where they differ in methodology. It is designed to surface genuine disagreements versus apparent contradictions that are explained by methodological differences.
+
+## Invocation
+
+<Tabs>
+  <Tab title="CLI">
+    ```bash
+    feynman compare "<topic or sources>"
+    ```
+  </Tab>
+  <Tab title="REPL">
+    ```
+    /compare <topic or sources>
+    ```
+  </Tab>
+</Tabs>
+
+**Examples**
+
+```bash
+feynman compare "GPT-4 vs Claude vs Gemini on reasoning benchmarks"
+feynman compare "arxiv:2401.12345 arxiv:2402.67890 arxiv:2403.11111"
+```
+
+```
+/compare "mixture of experts vs dense transformers efficiency tradeoffs"
+/compare sparse attention methods 2022-2024
+```
+
+You can provide a topic and let Feynman find the most relevant and contrasting sources, or list specific papers and documents for a targeted comparison.
+
+## Workflow stages
+
+<Steps>
+  <Step title="Plan">
+    Before starting, the lead agent outlines the comparison plan: which sources to compare, which dimensions to evaluate, and the expected output structure. The plan is written to `outputs/.plans/<slug>.md` and presented to you for confirmation before proceeding.
+  </Step>
+
+  <Step title="Gather source material">
+    When the comparison set is broad, the `researcher` subagent gathers source material. If you provide a topic, researchers find the most relevant and contrasting papers. If you provide specific IDs or files, those are used directly.
+
+    Each source is analyzed independently: claims, results, methodology, and limitations are extracted from each document.
+  </Step>
+
+  <Step title="Build comparison matrix">
+    Claims are aligned across sources, identifying:
+
+    - **Agreement** — where two or more sources make the same claim with supporting evidence
+    - **Disagreement** — where sources report contradictory results
+    - **Uncertainty** — where sources measure different things or use incompatible evaluation protocols
+
+    The matrix covers: source, key claim, evidence type, caveats, and confidence. The alignment step explicitly notes when an apparent disagreement might be explained by methodological differences rather than genuinely conflicting results.
+
+    Quantitative comparisons are rendered as charts using `pi-charts`. Method or architecture comparisons use Mermaid diagrams.
+  </Step>
+
+  <Step title="Cite and verify">
+    The `verifier` subagent verifies sources and adds inline citations to the final comparison matrix.
+  </Step>
+
+  <Step title="Deliver">
+    Exactly one comparison artifact is saved to `outputs/<slug>-comparison.md`. The report ends with a `Sources` section containing direct URLs for every source used.
+  </Step>
+</Steps>
+
+## Outputs
+
+| Artifact | Path |
+|---|---|
+| Comparison plan | `outputs/.plans/<slug>.md` |
+| Comparison matrix | `outputs/<slug>-comparison.md` |
+
+## Comparison report structure
+
+- **Source summaries** — one-paragraph summary of each source's key contributions
+- **Agreement matrix** — claims supported by multiple sources with citation evidence
+- **Disagreement matrix** — conflicting claims with analysis of why sources diverge
+- **Methodology differences** — how the sources differ in approach, data, and evaluation
+- **Synthesis** — an overall assessment of which claims are well-supported and which remain contested
+
+## Subagents used
+
+| Subagent | Role |
+|---|---|
+| `researcher` | Gathers and independently analyzes each source |
+| `verifier` | Verifies sources and adds inline citations to the matrix |
+
+## When to use `/compare`
+
+Use `/compare` when:
+
+- You encounter contradictory results in the literature and need to understand whether they reflect genuine disagreement or methodological differences
+- Evaluating competing approaches to the same problem
+- Writing a related work section that needs to accurately characterize the state of debate
+- Deciding which paper's results to trust when building on prior work
+
+<Tip>
+  For a broader survey of a field rather than a head-to-head comparison, use [Literature Review](/workflows/literature-review) instead.
+</Tip>
+
+## Related
+
+- [Literature Review](/workflows/literature-review) — map the full research landscape on a topic
+- [Paper Audit](/workflows/audit) — verify a single paper's claims against its codebase
+- [Deep Research](/workflows/deep-research) — deep investigation before comparing specific claims

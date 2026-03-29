@@ -1,97 +1,89 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Feynman — The Open Source AI Research Agent"
+description: "A research-first CLI agent that searches papers, synthesizes evidence, replicates experiments, and delivers source-grounded research briefs."
 ---
 
-## Setting up
+Feynman is an open source AI research agent that runs in your terminal. Point it at a research question and it searches academic papers, crawls the web, dispatches parallel subagents, verifies citations, and delivers structured research briefs with inline sources — all from a single command.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/getting-started/installation">
+    Install Feynman on macOS, Linux, or Windows in one command.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quick Start" icon="rocket" href="/getting-started/quickstart">
+    Run your first deep research session in under five minutes.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Research Workflows" icon="magnifying-glass" href="/workflows/deep-research">
+    Explore deep research, literature review, replication, audit, and more.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli-commands">
+    Full reference for every command, flag, and slash workflow.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What Feynman does
 
-Everything you need to create world-class documentation.
+```bash
+# Ask a research question naturally
+feynman "what do we know about scaling laws in LLMs?"
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+# Run a source-heavy multi-agent investigation
+feynman deepresearch "mechanistic interpretability"
 
-## Need inspiration?
+# Literature review from primary sources
+feynman lit "RLHF alternatives"
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+# Compare a paper's claims against its public codebase
+feynman audit 2401.12345
+
+# Replicate an experiment on local or cloud GPUs
+feynman replicate "chain-of-thought improves math"
+```
+
+## How it works
+
+Feynman orchestrates four specialized subagents — **Researcher**, **Writer**, **Reviewer**, and **Verifier** — over a pool of tools: AlphaXiv for paper search and Q&A, web search for current information, Docker and cloud GPU compute for experiment execution, and session memory for recall across sessions. Every output links claims to papers, docs, or repositories with direct URLs.
+
+<Steps>
+  <Step title="Install">
+    Run the one-line installer. Feynman ships as a standalone bundle with no external runtime dependencies.
+    ```bash
+    curl -fsSL https://feynman.is/install | bash
+    ```
+  </Step>
+  <Step title="Set up your model">
+    Run `feynman setup` to pick a model provider and authenticate. Feynman supports Anthropic, OpenAI, Google, OpenRouter, and more.
+    ```bash
+    feynman setup
+    ```
+  </Step>
+  <Step title="Start researching">
+    Launch the interactive REPL or pass a question directly. Use slash commands to invoke specific research workflows.
+    ```bash
+    feynman
+    > /deepresearch transformer architectures for protein folding
+    ```
+  </Step>
+</Steps>
+
+## Key capabilities
+
+<CardGroup cols={2}>
+  <Card title="Deep Research" icon="microscope" href="/workflows/deep-research">
+    Multi-agent investigation with parallel researchers, synthesis, and a verification pass. Produces a cited brief saved to `outputs/`.
+  </Card>
+  <Card title="Literature Review" icon="book-open" href="/workflows/literature-review">
+    Structured review from paper search and primary sources, with consensus, disagreements, and open questions.
+  </Card>
+  <Card title="Experiment Replication" icon="flask" href="/workflows/replication">
+    Replicate paper results locally, in Docker, or on Modal / RunPod GPU infrastructure.
+  </Card>
+  <Card title="Paper Audit" icon="shield-check" href="/workflows/audit">
+    Compares a paper's claims against the public codebase to surface mismatches.
+  </Card>
+  <Card title="Peer Review Simulation" icon="comments" href="/workflows/review">
+    Severity-graded feedback on drafts or papers, with a concrete revision plan.
+  </Card>
+  <Card title="AlphaXiv Integration" icon="graduation-cap" href="/tools/alphaxiv">
+    Search, read, Q&A, and annotate academic papers via the `alpha` CLI.
+  </Card>
+</CardGroup>

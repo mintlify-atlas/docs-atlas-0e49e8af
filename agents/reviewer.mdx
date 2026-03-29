@@ -1,0 +1,107 @@
+---
+title: "Reviewer agent"
+description: "Simulates skeptical peer review with severity-graded feedback and inline annotations."
+---
+
+The Reviewer is Feynman's peer review subagent. It evaluates drafts, papers, and research artifacts with the rigor of an academic reviewer — checking for unsupported claims, logical gaps, zombie sections, and evaluation design problems. It can also operate as an adversarial auditor when the lead agent frames the task as an evidence integrity check.
+
+## Role
+
+The Reviewer reads a document end-to-end and evaluates it against standard academic criteria. It checks whether claims are supported by the presented evidence, whether the methodology is sound and described with sufficient reproducibility detail, whether experimental design controls for confounds, and whether the writing is clear and unambiguous.
+
+When framed as a verification pass rather than a venue-style review, the Reviewer shifts into adversarial auditor mode — prioritizing evidence integrity over novelty commentary and challenging citation quality directly.
+
+## Review checklist
+
+The Reviewer evaluates documents across these dimensions:
+
+- **Claims vs. evidence** — Does the evidence actually support the claims made?
+- **Baselines and ablations** — Are baselines appropriate? Are ablation studies sufficient?
+- **Evaluation design** — Are there evaluation mismatches or benchmark contamination risks?
+- **Novelty positioning** — Are claims of novelty clearly distinguished from prior work?
+- **Reproducibility** — Could someone replicate this work from the description alone?
+- **Statistical evidence** — Are results supported with sufficient statistical evidence?
+- **Implementation details** — Are critical hyperparameters and architectural choices specified?
+- **Zombie sections** — Are there sections, figures, or tables that survive from earlier drafts without supporting evidence?
+- **Language calibration** — Do conclusions use stronger language than the evidence warrants?
+- **Fake verification** — Do any "verified" or "confirmed" statements fail to show the underlying check?
+
+<Note>
+  The Reviewer keeps looking after finding the first major problem. It does not stop at one issue if others remain visible.
+</Note>
+
+## Severity levels
+
+Every weakness is assigned a severity level:
+
+| Level | Meaning | Required action |
+|---|---|---|
+| **FATAL** | Fundamental problem that undermines validity | Must be fixed before delivery |
+| **MAJOR** | Significant problem that should be addressed | Note in Open Questions if not fixed |
+| **MINOR** | Suggestion for improvement | Accepted as-is |
+
+## Output format
+
+The Reviewer produces two sections: a structured review and inline annotations.
+
+**Part 1: Structured review**
+
+```markdown
+## Summary
+1-2 paragraph summary of the paper's contributions and approach.
+
+## Strengths
+- [S1] ...
+
+## Weaknesses
+- [W1] **FATAL:** ...
+- [W2] **MAJOR:** ...
+- [W3] **MINOR:** ...
+
+## Questions for authors
+- [Q1] ...
+
+## Verdict
+Overall assessment and confidence score.
+
+## Revision plan
+Prioritized, concrete steps to address each weakness.
+```
+
+**Part 2: Inline annotations**
+
+```markdown
+## Inline annotations
+
+> "We achieve state-of-the-art results on all benchmarks"
+**[W1] FATAL:** This claim is unsupported — Table 3 shows the method underperforms on 2 of 5 benchmarks. Revise to accurately reflect results.
+
+> "Our approach is novel in combining X with Y"
+**[W3] MINOR:** Z et al. (2024) combined X with Y in a different domain. Acknowledge this and clarify the distinction.
+```
+
+Inline annotations quote the exact text being critiqued and reference the weakness or question IDs from Part 1.
+
+## Output file
+
+The Reviewer saves its output to the path specified by the lead agent. In standard workflows this is:
+
+```
+<slug>-verification.md
+```
+
+The output file contains both the structured review and inline annotations.
+
+## Manual invocation
+
+You can run the Reviewer directly on a specific task:
+
+```
+/run reviewer check the draft at outputs/.drafts/scaling-laws-draft.md
+```
+
+```
+/run reviewer audit the evidence integrity of papers/moe-survey.md
+```
+
+The Reviewer saves its output to the path specified by the lead agent (or `review.md` as a fallback).
